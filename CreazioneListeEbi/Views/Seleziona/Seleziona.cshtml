@@ -1,0 +1,71 @@
+﻿@model System.Data.DataTable
+
+@{
+    // Mappatura per sostituire i nomi tecnici delle colonne con nomi più leggibili
+    var columnNamesMap = new Dictionary<string, string>
+    {
+        { "PBSNCO", "Codice Nazionale" },
+        { "PBSCCO", "Codice Correlativo" },
+        { "KBARA1", "Nome Azienda" },
+        { "PBSACC", "Codice Accertamento" },
+        { "PBSURG", "Tipo Urgenza" },
+        { "PBSVALORE", "Valore" },
+        { "TBIDEC", "Descrizione" },
+        { "TotAcc", "Totale Accertamenti" }
+    };
+}
+
+<div class="container">
+    <h2>Seleziona Dati da Includere nel File Excel</h2>
+
+    <form asp-controller="Seleziona" asp-action="Crea" method="post">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Seleziona</th>
+                    @foreach (System.Data.DataColumn column in Model.Columns)
+                    {
+                        // Utilizza il nome descrittivo se disponibile, altrimenti usa il nome originale
+                        <th>@(columnNamesMap.ContainsKey(column.ColumnName) ? columnNamesMap[column.ColumnName] : column.ColumnName)</th>
+                    }
+                    <th>Formato</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Rows.Count; i++)
+                {
+                    var row = Model.Rows[i];
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="selectedRows" value="@row[0]" />
+                        </td>
+                        @foreach (var item in row.ItemArray)
+                        {
+                            <td>@item</td>
+                        }
+                        <td>
+                            @{
+                                // Valore di PBSACC per la riga corrente
+                                string pbsacc = row["PBSACC"].ToString();
+                                string checkedRT4 = (pbsacc == "RT4" || pbsacc == "RT8") ? "checked" : "";
+                                string checkedRT6 = (pbsacc == "RT6") ? "checked" : "";
+                                string checkedBas = (pbsacc != "RT4" && pbsacc != "RT8" && pbsacc != "RT6") ? "checked" : "";
+
+                                // Nome univoco per i radio buttons di ogni riga
+                                string radioGroupName = "Formato" + (i + 1).ToString("D2");
+                            }
+                            <input type="radio" name="@radioGroupName" value="B" @checkedBas /> Base
+                            <input type="radio" name="@radioGroupName" value="R" @checkedRT4 /> RT4/RT8
+                            <input type="radio" name="@radioGroupName" value="EREDI" @checkedRT6 /> RT6
+                            <input type="radio" name="@radioGroupName" value="CLIENTE" /> CODCLI
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="form-group text-center mt-4">
+            <button type="submit" class="btn btn-primary">Crea File Excel</button>
+        </div>
+    </form>
+</div>

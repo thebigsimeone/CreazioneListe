@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreazioneListeEbi", "CreazioneListeEbi\CreazioneListeEbi.csproj", "{DBEF7C1C-63A9-4434-A94A-FBF404D54B3B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DBEF7C1C-63A9-4434-A94A-FBF404D54B3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBEF7C1C-63A9-4434-A94A-FBF404D54B3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBEF7C1C-63A9-4434-A94A-FBF404D54B3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBEF7C1C-63A9-4434-A94A-FBF404D54B3B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {96175FCA-C575-4F76-AAB8-0EA3A42BE111}
+	EndGlobalSection
+EndGlobal
