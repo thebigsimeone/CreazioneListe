@@ -1,4 +1,5 @@
-﻿using CreazioneListeEbi.Interfaces;
+﻿using Azure.Messaging;
+using CreazioneListeEbi.Interfaces;
 using CreazioneListeEbi.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -66,6 +67,47 @@ namespace CreazioneListeEbi.Services
                         finalQuery.Replace(parameter.ParameterName, parameter.Value.ToString());
                     }
 
+                    Console.WriteLine("Query Table Select: ");
+                    Console.WriteLine(finalQuery.ToString());
+
+                    var adapter = new SqlDataAdapter(command);
+                    await Task.Run(() => adapter.Fill(dataTable));
+                }
+            }
+
+            return dataTable;
+        }
+
+        public async Task<DataTable> GetDataTestAsync(RichiestaExcel richiestaExcel, FormData formData)
+        {
+            var dataTable = new DataTable();
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var query = @"SELECT isNull(T1.TBBDES,'') as TipoIND, isNull(T2.TBBDES,'') as TipoCONT, PBARDGF0.*, IBAOGGF0.*, DATORILAV.*
+                      FROM PBSACOF0
+                      INNER JOIN PBARDGF0 ON PBAANP = PBSAPR AND PBANUP = PBSNPR
+                      LEFT JOIN IBAOGGF0 ON IBACOG = PBAOGG
+                      LEFT JOIN TBBTABF0 as T1 ON T1.TBBTTA = 'IND' and T1.TBBCLI = 'IT' And T1.TBBCTA = IBAIND
+                      LEFT JOIN DATORILAV ON LAVOGG = PBAOGG
+                      LEFT JOIN TBBTABF0 as T2 ON T2.TBBTTA = 'DCO' and T2.TBBCLI = 'IT' And T2.TBBCTA = LAVCONT
+                      WHERE PBSDAF >= @DaDataAff And PBSDAF <= @DataAff And PBSPAC = '2' And PBSSCARICO <> 'S'
+                      And PBSNCO = @NazCor And PBSCCO = @CodCor And PBSACC = @CodAcc And PBSURG = @CodUrg And PBACOP <> 'SCO'";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@DaDataAff", Convert.ToInt32(formData.DaDataAff));
+                    command.Parameters.AddWithValue("@DataAff", Convert.ToInt32(formData.DataAff));
+                    command.Parameters.AddWithValue("@NazCor", formData.NazCor ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@CodCor", Convert.ToInt32(formData.CodCor));
+                    command.Parameters.AddWithValue("@CodAcc", formData.CodAcc ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@CodUrg", richiestaExcel.CodUrg ?? (object)DBNull.Value);
+
+                    StringBuilder finalQuery = new StringBuilder(query);
+                    foreach (SqlParameter parameter in command.Parameters)
+                    {
+                        finalQuery.Replace(parameter.ParameterName, parameter.Value.ToString());
+                    }
+
                     Console.WriteLine("Query Finale: ");
                     Console.WriteLine(finalQuery.ToString());
 
@@ -76,5 +118,6 @@ namespace CreazioneListeEbi.Services
 
             return dataTable;
         }
+
     }
 }

@@ -18,7 +18,7 @@
 <div class="container">
     <h2>Seleziona Dati da Includere nel File Excel</h2>
 
-    <form asp-controller="Seleziona" asp-action="Crea" method="post">
+    <form asp-controller="Seleziona" asp-action="TestQuery" method="post">
         <table class="table">
             <thead>
                 <tr>
@@ -37,7 +37,7 @@
                     var row = Model.Rows[i];
                     <tr>
                         <td>
-                            <input type="checkbox" name="selectedRows" value="@row[0]" />
+                            <input type="checkbox" name="selectedRows" value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"]" />
                         </td>
                         @foreach (var item in row.ItemArray)
                         {
@@ -65,7 +65,7 @@
         </table>
 
         <div class="form-group text-center mt-4">
-            <button type="submit" class="btn btn-primary">Crea File Excel</button>
+            <button type="submit" class="btn btn-primary">Visualizza Dati Selezionati</button>
         </div>
     </form>
 </div>

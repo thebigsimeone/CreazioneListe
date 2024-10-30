@@ -15,11 +15,7 @@ namespace CreazioneListeEbi.Controllers
 
         public IActionResult Index()
         {
-            var formData = new FormData
-            {
-                DaDataAff = DateTime.Now.AddDays(-7).ToString("yyyyMMdd"),
-                DataAff = DateTime.Now.ToString("yyyyMMdd")
-            };
+            var formData = new FormData();
             return View(formData);
         }
 

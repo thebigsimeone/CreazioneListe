@@ -1,0 +1,31 @@
+﻿@model System.Data.DataTable
+
+<div class="container">
+    <h2>Dati Estratti dalla Selezione</h2>
+
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                @foreach (System.Data.DataColumn column in Model.Columns)
+                {
+                    <th>@column.ColumnName</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (System.Data.DataRow row in Model.Rows)
+            {
+                var hasData = row.ItemArray.Any(item => !string.IsNullOrEmpty(item?.ToString()?.Trim()));
+                if (hasData)
+                {
+                    <tr>
+                        @foreach (var item in row.ItemArray)
+                        {
+                            <td>@item</td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

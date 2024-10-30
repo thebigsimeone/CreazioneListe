@@ -26,15 +26,26 @@ namespace CreazioneListeEbi.Services
             using (var package = new ExcelPackage(new FileInfo(filePath)))
             {
                 var worksheet = package.Workbook.Worksheets.Add("Dati");
-                // Popolare il worksheet con i dati
-                worksheet.Cells[1, 1].Value = "Esempio"; // Placeholder, popolare con dati effettivi
 
-                // Salva il file
+                // Popolare il worksheet con i dati
+                worksheet.Cells[1, 1].Value = "Codice Nazionale";
+                worksheet.Cells[1, 2].Value = "Codice Correlativo";
+                worksheet.Cells[1, 3].Value = "Nome Azienda";
+                // Continua con tutte le colonne di interesse...
+
+                // Aggiungere i dati dal modello `RichiestaExcel`
+                // Popolamento esempio, puoi personalizzare in base al contenuto di `data`
+                worksheet.Cells[2, 1].Value = richiesta.NazCor;
+                worksheet.Cells[2, 2].Value = richiesta.CodCor;
+                worksheet.Cells[2, 3].Value = richiesta.TotRic;
+                // Continua ad aggiungere i dati come necessario...
+
                 await package.SaveAsync();
             }
 
             return filePath;
         }
+
 
         public async Task<bool> CreateDirectoryIfNotExistAsync(string path)
         {
