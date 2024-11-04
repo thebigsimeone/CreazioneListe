@@ -2,7 +2,7 @@
 using CreazioneListeEbi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
+using OfficeOpenXml;
 using System.Data;
 using System.Text;
 
@@ -50,7 +50,7 @@ namespace CreazioneListeEbi.Controllers
 
             return RedirectToAction("ListaFile", "File");
         }
-        public async Task<IActionResult> TestQuery(string[] selectedRows)
+        public async Task<IActionResult> TestQuery_view(string[] selectedRows)
         {
             if (selectedRows == null || selectedRows.Length == 0)
             {
@@ -106,6 +106,89 @@ namespace CreazioneListeEbi.Controllers
             return View("~/Views/Test/VisualizzaDati.cshtml", dataTables);
         }
 
+        public async Task<IActionResult> TestQuery(string[] selectedRows, string[] formato)
+        {
+            if (selectedRows == null || selectedRows.Length == 0)
+            {
+                return BadRequest("Nessuna riga selezionata.");
+            }
+
+            var dataTables = new List<DataTable>();
+            var richiesteExcel = new List<RichiestaExcel>();
+
+            foreach (var selectedRow in selectedRows)
+            {
+                var datiSelezionati = selectedRow.Split(',');
+                var richiestaExcel = new RichiestaExcel
+                {
+                    NazCor = datiSelezionati.Length > 0 ? datiSelezionati[0] : null,
+                    CodCor = datiSelezionati.Length > 1 ? datiSelezionati[1] : null,
+                    CodAcc = datiSelezionati.Length > 2 ? datiSelezionati[2] : null,
+                    CodUrg = datiSelezionati.Length > 3 ? datiSelezionati[3] : null,
+                    Formato = formato.Length > richiesteExcel.Count ? formato[richiesteExcel.Count] : null // Assegna il formato corretto per ciascuna richiesta
+                };
+
+                var daDataAff = DateTime.Now.AddDays(-7).ToString("yyyyMMdd");
+                var dataAff = DateTime.Now.ToString("yyyyMMdd");
+
+                var formData = new FormData
+                {
+                    DaDataAff = daDataAff,
+                    DataAff = dataAff,
+                    NazCor = richiestaExcel.NazCor,
+                    CodCor = richiestaExcel.CodCor,
+                    CodAcc = richiestaExcel.CodAcc
+                };
+
+                var data = await _databaseService.GetDataTestAsync(richiestaExcel, formData);
+                richiestaExcel.TotRic = data.Rows.Count; // Assegna TotRic in base al numero di righe nel dataTable
+                richiesteExcel.Add(richiestaExcel);
+
+                var dataFiltrata = FiltraColonne(data, richiestaExcel);
+                dataTables.Add(dataFiltrata);
+            }
+
+            var directoryPath = Path.Combine("C:\\Users\\Utente\\Desktop\\EXCEL", DateTime.Now.ToString("yyyyMMdd"));
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            var files = new List<FileInfo>();
+            for (int i = 0; i < dataTables.Count; i++)
+            {
+                var richiesta = richiesteExcel[i];
+                var fileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{richiesta.CodAcc}_{richiesta.TotRic}_{richiesta.CodUrg}_{DateTime.Now:yyyyMMdd_HHmmssfff}.xlsx";
+                var filePath = Path.Combine(directoryPath, fileName);
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("Dati");
+                    var dataTable = dataTables[i];
+
+                    for (int col = 0; col < dataTable.Columns.Count; col++)
+                    {
+                        worksheet.Cells[1, col + 1].Value = dataTable.Columns[col].ColumnName;
+                    }
+
+                    for (int row = 0; row < dataTable.Rows.Count; row++)
+                    {
+                        for (int col = 0; col < dataTable.Columns.Count; col++)
+                        {
+                            worksheet.Cells[row + 2, col + 1].Value = dataTable.Rows[row][col];
+                        }
+                    }
+
+                    package.SaveAs(new FileInfo(filePath));
+                }
+
+                files.Add(new FileInfo(filePath));
+            }
+
+            return View("~/Views/File/ListaFile.cshtml", files);
+        }
+
         // Metodo per filtrare e rielaborare le colonne del DataTable con le condizioni richieste
         private DataTable FiltraColonne(DataTable dataTable, RichiestaExcel richiesta)
         {
@@ -121,14 +204,17 @@ namespace CreazioneListeEbi.Controllers
             dataTableFiltrato.Columns.Add("Codice Fiscale", typeof(string));
 
             // Verifica e aggiungi eventuali colonne opzionali in base al formato
+            if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
+            {
+                if (!dataTableFiltrato.Columns.Contains("CLIENTE"))
+                {
+                    dataTableFiltrato.Columns.Add("CLIENTE", typeof(string));
+                }
+            }
+
             if (richiesta.Formato == "EREDI")
             {
                 dataTableFiltrato.Columns.Add("PrimoRigo", typeof(string));
-            }
-
-            if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
-            {
-                dataTableFiltrato.Columns.Add("CLIENTE", typeof(string));
             }
 
             foreach (DataRow row in dataTable.Rows)
@@ -159,7 +245,7 @@ namespace CreazioneListeEbi.Controllers
                     newRow["Codice Fiscale"] = "N/A"; // Valore di default se la colonna non esiste
                 }
 
-                // Aggiungi la colonna PBACLI solo per le righe con Formato CLIENTE
+                // Popola la colonna CLIENTE solo se richiesto
                 if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
                 {
                     newRow["CLIENTE"] = row["PBACLI"].ToString();
@@ -261,7 +347,6 @@ namespace CreazioneListeEbi.Controllers
 
             return dataTableFiltrato;
         }
-
 
         private string LeggiModuloTesto(string cOggetto, string cTipo)
         {

@@ -8,7 +8,7 @@ namespace CreazioneListeEbi.Controllers
         public FileController()
         {
             // Percorso in cui vengono salvati i file creati (wwwroot/files).
-            _filesDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files");
+            _filesDirectory = Path.Combine("C:\\Users\\Utente\\Desktop\\EXCEL", DateTime.Now.ToString("yyyyMMdd"));
 
         }
         public IActionResult ListaFile()

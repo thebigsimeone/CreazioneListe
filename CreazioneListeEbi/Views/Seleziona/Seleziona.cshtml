@@ -51,10 +51,11 @@
                                 // Nome univoco per i radio buttons di ogni riga, includendo l'indice per differenziarli
                                 string radioGroupName = $"formato_{i}";
                             }
-                            <input type="radio" name="@radioGroupName" value="B" /> Base
-                            <input type="radio" name="@radioGroupName" value="R" /> RT4/RT8
-                            <input type="radio" name="@radioGroupName" value="EREDI" /> RT6
-                            <input type="radio" name="@radioGroupName" value="CLIENTE" /> CODCLI
+                            <input type="radio" name="@radioGroupName" value="B" onchange="aggiornaFormato(@i, 'B')" /> Base
+                            <input type="radio" name="@radioGroupName" value="R" onchange="aggiornaFormato(@i, 'R')" /> RT4/RT8
+                            <input type="radio" name="@radioGroupName" value="EREDI" onchange="aggiornaFormato(@i, 'EREDI')" /> RT6
+                            <input type="radio" name="@radioGroupName" value="CLIENTE" onchange="aggiornaFormato(@i, 'CLIENTE')" /> CODCLI
+                            <input type="hidden" name="formato" id="formato_@i" value="" />
                         </td>
                     </tr>
                 }
@@ -81,5 +82,8 @@
         const button = document.querySelector('button[onclick="selezionaTutte()"]');
         button.textContent = tutteSelezionate ? "Deseleziona Tutto" : "Seleziona Tutto";
     }
-</script>
 
+    function aggiornaFormato(index, formato) {
+        document.getElementById(`formato_${index}`).value = formato;
+    }
+</script>
