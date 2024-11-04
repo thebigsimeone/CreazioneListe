@@ -50,7 +50,7 @@ namespace CreazioneListeEbi.Controllers
 
             return RedirectToAction("ListaFile", "File");
         }
-        public async Task<IActionResult> TestQuery(string[] selectedRows, string[] formato)
+        public async Task<IActionResult> TestQuery(string[] selectedRows)
         {
             if (selectedRows == null || selectedRows.Length == 0)
             {
@@ -63,13 +63,22 @@ namespace CreazioneListeEbi.Controllers
             {
                 // Parsing dei dati selezionati
                 var datiSelezionati = selectedRow.Split(',');
+
+                if (datiSelezionati.Length < 5)
+                {
+                    return BadRequest("Informazioni insufficienti per la riga selezionata.");
+                }
+
+                int rowIndex = int.Parse(datiSelezionati[4]);
+                string formatoSelezionato = Request.Form[$"formato_{rowIndex}"];
+
                 var richiestaExcel = new RichiestaExcel
                 {
-                    NazCor = datiSelezionati.Length > 0 ? datiSelezionati[0] : null,
-                    CodCor = datiSelezionati.Length > 1 ? datiSelezionati[1] : null,
-                    CodAcc = datiSelezionati.Length > 2 ? datiSelezionati[2] : null,
-                    CodUrg = datiSelezionati.Length > 3 ? datiSelezionati[3] : null,
-                    Formato = formato.Length > 0 ? formato[0] : null
+                    NazCor = datiSelezionati[0],
+                    CodCor = datiSelezionati[1],
+                    CodAcc = datiSelezionati[2],
+                    CodUrg = datiSelezionati[3],
+                    Formato = formatoSelezionato
                 };
 
                 // Assegna valori costanti per DaDataAff e DataAff
@@ -111,37 +120,21 @@ namespace CreazioneListeEbi.Controllers
             dataTableFiltrato.Columns.Add("Protocollo", typeof(string));
             dataTableFiltrato.Columns.Add("Codice Fiscale", typeof(string));
 
-            // Verifica e aggiungi eventuali colonne opzionali
-            if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
-            {
-                dataTableFiltrato.Columns.Add("PBACLI", typeof(string));
-            }
-
+            // Verifica e aggiungi eventuali colonne opzionali in base al formato
             if (richiesta.Formato == "EREDI")
             {
                 dataTableFiltrato.Columns.Add("PrimoRigo", typeof(string));
             }
 
-            // Aggiungi le colonne richieste dai nuovi IF
-            if (richiesta.CodAcc == "BAN" || richiesta.CodAcc == "CCL")
+            if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
             {
-                dataTableFiltrato.Columns.Add("PBADEN", typeof(string));
-            }
-
-            if (richiesta.CodAcc == "CMO")
-            {
-                dataTableFiltrato.Columns.Add("PBADEN", typeof(string));
-                dataTableFiltrato.Columns.Add("PBACIT", typeof(string));
-            }
-
-            if (richiesta.CodAcc == "VED")
-            {
-                dataTableFiltrato.Columns.Add("P.Iva", typeof(string));
+                dataTableFiltrato.Columns.Add("CLIENTE", typeof(string));
             }
 
             foreach (DataRow row in dataTable.Rows)
             {
                 var newRow = dataTableFiltrato.NewRow();
+
                 if (richiesta.CodCor == "8033")
                 {
                     newRow["Azienda"] = "EBI";
@@ -166,29 +159,61 @@ namespace CreazioneListeEbi.Controllers
                     newRow["Codice Fiscale"] = "N/A"; // Valore di default se la colonna non esiste
                 }
 
-                if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI") && row["PBACLI"] != DBNull.Value)
+                // Aggiungi la colonna PBACLI solo per le righe con Formato CLIENTE
+                if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
                 {
-                    if (!dataTableFiltrato.Columns.Contains("PBACLI"))
-                    {
-                        dataTableFiltrato.Columns.Add("PBACLI", typeof(string));
-                    }
-                    newRow["PBACLI"] = row["PBACLI"].ToString();
+                    newRow["CLIENTE"] = row["PBACLI"].ToString();
                 }
 
+                // Condizioni aggiuntive per CodAcc
                 if (richiesta.CodAcc == "BAN" || richiesta.CodAcc == "CCL")
                 {
+                    if (!dataTableFiltrato.Columns.Contains("PBADEN"))
+                    {
+                        dataTableFiltrato.Columns.Add("PBADEN", typeof(string));
+                    }
                     newRow["PBADEN"] = row["PBADEN"].ToString();
                 }
 
                 if (richiesta.CodAcc == "CMO")
                 {
+                    if (!dataTableFiltrato.Columns.Contains("PBADEN"))
+                    {
+                        dataTableFiltrato.Columns.Add("PBADEN", typeof(string));
+                    }
+                    if (!dataTableFiltrato.Columns.Contains("PBACIT"))
+                    {
+                        dataTableFiltrato.Columns.Add("PBACIT", typeof(string));
+                    }
                     newRow["PBADEN"] = row["PBADEN"].ToString();
                     newRow["PBACIT"] = row["PBACIT"].ToString();
                 }
 
                 if (richiesta.CodAcc == "VED")
                 {
+                    if (!dataTableFiltrato.Columns.Contains("P.Iva"))
+                    {
+                        dataTableFiltrato.Columns.Add("P.Iva", typeof(string));
+                    }
+                    if (!dataTableFiltrato.Columns.Contains("ESITO"))
+                    {
+                        dataTableFiltrato.Columns.Add("ESITO", typeof(string));
+                    }
                     newRow["P.Iva"] = row["LAVCFI"].ToString();
+                    newRow["ESITO"] = "";
+                }
+
+                if (richiesta.CodAcc == "DP1")
+                {
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        string columnName = $"ESITO {i}";
+                        if (!dataTableFiltrato.Columns.Contains(columnName))
+                        {
+                            dataTableFiltrato.Columns.Add(columnName, typeof(string));
+                        }
+                        newRow[columnName] = ""; // Valore di default per "ESITO"
+                    }
                 }
 
                 if (richiesta.Formato == "EREDI")
@@ -236,6 +261,7 @@ namespace CreazioneListeEbi.Controllers
 
             return dataTableFiltrato;
         }
+
 
         private string LeggiModuloTesto(string cOggetto, string cTipo)
         {

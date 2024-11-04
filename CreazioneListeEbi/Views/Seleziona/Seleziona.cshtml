@@ -19,6 +19,9 @@
     <h2>Seleziona Dati da Includere nel File Excel</h2>
 
     <form asp-controller="Seleziona" asp-action="TestQuery" method="post">
+        <div class="form-group text-center">
+            <button type="button" class="btn btn-secondary" onclick="selezionaTutte()">Seleziona Tutto</button>
+        </div>
         <table class="table">
             <thead>
                 <tr>
@@ -37,7 +40,7 @@
                     var row = Model.Rows[i];
                     <tr>
                         <td>
-                            <input type="checkbox" name="selectedRows" value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"]" />
+                            <input type="checkbox" name="selectedRows" class="row-checkbox" value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"],@i" />
                         </td>
                         @foreach (var item in row.ItemArray)
                         {
@@ -45,8 +48,8 @@
                         }
                         <td>
                             @{
-                                // Nome univoco per i radio buttons di ogni riga
-                                string radioGroupName = "formato";
+                                // Nome univoco per i radio buttons di ogni riga, includendo l'indice per differenziarli
+                                string radioGroupName = $"formato_{i}";
                             }
                             <input type="radio" name="@radioGroupName" value="B" /> Base
                             <input type="radio" name="@radioGroupName" value="R" /> RT4/RT8
@@ -63,3 +66,20 @@
         </div>
     </form>
 </div>
+
+<script>
+    let tutteSelezionate = false;
+
+    function selezionaTutte() {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        tutteSelezionate = !tutteSelezionate; // Cambia lo stato
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = tutteSelezionate;
+        });
+
+        // Modifica il testo del pulsante in base allo stato corrente
+        const button = document.querySelector('button[onclick="selezionaTutte()"]');
+        button.textContent = tutteSelezionate ? "Deseleziona Tutto" : "Seleziona Tutto";
+    }
+</script>
+
