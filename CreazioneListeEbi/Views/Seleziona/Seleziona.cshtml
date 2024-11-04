@@ -45,18 +45,12 @@
                         }
                         <td>
                             @{
-                                // Valore di PBSACC per la riga corrente
-                                string pbsacc = row["PBSACC"].ToString();
-                                string checkedRT4 = (pbsacc == "RT4" || pbsacc == "RT8") ? "checked" : "";
-                                string checkedRT6 = (pbsacc == "RT6") ? "checked" : "";
-                                string checkedBas = (pbsacc != "RT4" && pbsacc != "RT8" && pbsacc != "RT6") ? "checked" : "";
-
                                 // Nome univoco per i radio buttons di ogni riga
-                                string radioGroupName = "Formato" + (i + 1).ToString("D2");
+                                string radioGroupName = "formato";
                             }
-                            <input type="radio" name="@radioGroupName" value="B" @checkedBas /> Base
-                            <input type="radio" name="@radioGroupName" value="R" @checkedRT4 /> RT4/RT8
-                            <input type="radio" name="@radioGroupName" value="EREDI" @checkedRT6 /> RT6
+                            <input type="radio" name="@radioGroupName" value="B" /> Base
+                            <input type="radio" name="@radioGroupName" value="R" /> RT4/RT8
+                            <input type="radio" name="@radioGroupName" value="EREDI" /> RT6
                             <input type="radio" name="@radioGroupName" value="CLIENTE" /> CODCLI
                         </td>
                     </tr>
