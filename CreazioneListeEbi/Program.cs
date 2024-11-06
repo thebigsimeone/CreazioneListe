@@ -1,5 +1,5 @@
-using CreazioneListeEbi.Interfaces;
-using CreazioneListeEbi.Services;
+using CreazioneListe.Interfaces;
+using CreazioneListe.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,4 +1,4 @@
-﻿namespace CreazioneListeEbi.Models
+﻿namespace CreazioneListe.Models
 {
     public class FormData
     {

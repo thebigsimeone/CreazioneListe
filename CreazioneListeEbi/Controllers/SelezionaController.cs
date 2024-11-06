@@ -1,12 +1,12 @@
-﻿using CreazioneListeEbi.Interfaces;
-using CreazioneListeEbi.Models;
+﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using OfficeOpenXml;
 using System.Data;
 using System.Text;
 
-namespace CreazioneListeEbi.Controllers
+namespace CreazioneListe.Controllers
 {
     public class SelezionaController : Controller
     {
@@ -24,14 +24,14 @@ namespace CreazioneListeEbi.Controllers
         public async Task<IActionResult> Seleziona(FormData formData)
         {
             // Ottiene i dati dal database in base al form di input fornito dall'utente.
-            var data = await _databaseService.GetDataAsync(formData);
+            var data = await _databaseService.GetSelectAsync(formData);
             return View(data);
         }
 
         public async Task<IActionResult> Crea(FormData formData)
         {
             // Ottiene i dati dal database in base al form di input
-            var data = await _databaseService.GetDataAsync(formData);
+            var data = await _databaseService.GetSelectAsync(formData);
 
             // Creiamo un oggetto RichiestaExcel basato sui dati di input forniti e sui dati recuperati
             var richiesta = new RichiestaExcel
@@ -40,7 +40,7 @@ namespace CreazioneListeEbi.Controllers
                 CodCor = formData.CodCor,
                 CodAcc = formData.CodAcc,
                 CodUrg = data.Rows.Count > 0 ? data.Rows[0]["PBSURG"].ToString() : null,
-                Formato = formData.CodAcc,  // Questo è un esempio; cambia a seconda della logica specifica
+                Formato = formData.CodAcc, 
                 TotRic = data.Rows.Count
             };
 
@@ -95,7 +95,7 @@ namespace CreazioneListeEbi.Controllers
                 };
 
                 // Recupera tutti i dati dal database
-                var data = await _databaseService.GetDataTestAsync(richiestaExcel, formData);
+                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData);
 
                 // Filtra e rielabora le colonne che vuoi visualizzare
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
@@ -106,7 +106,7 @@ namespace CreazioneListeEbi.Controllers
             return View("~/Views/Test/VisualizzaDati.cshtml", dataTables);
         }
 
-        public async Task<IActionResult> TestQuery(string[] selectedRows, string[] formato)
+        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato)
         {
             if (selectedRows == null || selectedRows.Length == 0)
             {
@@ -140,8 +140,8 @@ namespace CreazioneListeEbi.Controllers
                     CodAcc = richiestaExcel.CodAcc
                 };
 
-                var data = await _databaseService.GetDataTestAsync(richiestaExcel, formData);
-                richiestaExcel.TotRic = data.Rows.Count; // Assegna TotRic in base al numero di righe nel dataTable
+                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData);
+                richiestaExcel.TotRic = data.Rows.Count; 
                 richiesteExcel.Add(richiestaExcel);
 
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
@@ -298,7 +298,7 @@ namespace CreazioneListeEbi.Controllers
                         {
                             dataTableFiltrato.Columns.Add(columnName, typeof(string));
                         }
-                        newRow[columnName] = ""; // Valore di default per "ESITO"
+                        newRow[columnName] = ""; 
                     }
                 }
 
@@ -351,7 +351,7 @@ namespace CreazioneListeEbi.Controllers
         private string LeggiModuloTesto(string cOggetto, string cTipo)
         {
             var altre = string.Empty;
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            var connectionString = _configuration.GetConnectionString("DefaultConnection_EBI");
 
             using (var connection = new SqlConnection(connectionString))
             {
@@ -385,7 +385,7 @@ namespace CreazioneListeEbi.Controllers
         private string LeggiEredi(string oggetto, string primoRigo)
         {
             var htEredi = new StringBuilder();
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            var connectionString = _configuration.GetConnectionString("DefaultConnection_EBI");
 
             using (var connection = new SqlConnection(connectionString))
             {

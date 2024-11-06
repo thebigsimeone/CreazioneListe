@@ -1,11 +1,11 @@
 ﻿using Azure.Messaging;
-using CreazioneListeEbi.Interfaces;
-using CreazioneListeEbi.Models;
+using CreazioneListe.Interfaces;
+using CreazioneListe.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.Text;
 
-namespace CreazioneListeEbi.Services
+namespace CreazioneListe.Services
 {
     public class DatabaseService : IDatabaseService
     {
@@ -16,10 +16,10 @@ namespace CreazioneListeEbi.Services
             _configuration = configuration;
         }
 
-        public async Task<DataTable> GetDataAsync(FormData formData)
+        public async Task<DataTable> GetSelectAsync(FormData formData)
         {
             var dataTable = new DataTable();
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection_EBI")))
             {
                 var query = @"SELECT PBSNCO, PBSCCO, KBARA1, PBSACC, PBSURG, PBSVALORE, TBIDEC, Count(*) AS TotAcc 
                               FROM PBSACOF0
@@ -78,10 +78,10 @@ namespace CreazioneListeEbi.Services
             return dataTable;
         }
 
-        public async Task<DataTable> GetDataTestAsync(RichiestaExcel richiestaExcel, FormData formData)
+        public async Task<DataTable> GetSelectedAsync(RichiestaExcel richiestaExcel, FormData formData)
         {
             var dataTable = new DataTable();
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection_EBI")))
             {
                 var query = @"SELECT isNull(T1.TBBDES,'') as TipoIND, isNull(T2.TBBDES,'') as TipoCONT, PBARDGF0.*, IBAOGGF0.*, DATORILAV.*
                       FROM PBSACOF0

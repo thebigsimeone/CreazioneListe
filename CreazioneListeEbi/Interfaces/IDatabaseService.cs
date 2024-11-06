@@ -1,11 +1,11 @@
-﻿using CreazioneListeEbi.Models;
+﻿using CreazioneListe.Models;
 using System.Data;
 
-namespace CreazioneListeEbi.Interfaces
+namespace CreazioneListe.Interfaces
 {
     public interface IDatabaseService
     {
-        Task<DataTable> GetDataAsync(FormData formData);
-        Task<DataTable> GetDataTestAsync(RichiestaExcel richiestaExcel, FormData formData);
+        Task<DataTable> GetSelectAsync(FormData formData);
+        Task<DataTable> GetSelectedAsync(RichiestaExcel richiestaExcel, FormData formData);
     }
 }

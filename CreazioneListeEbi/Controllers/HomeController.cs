@@ -1,8 +1,8 @@
-using CreazioneListeEbi.Models;
+using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace CreazioneListeEbi.Controllers
+namespace CreazioneListe.Controllers
 {
     public class HomeController : Controller
     {

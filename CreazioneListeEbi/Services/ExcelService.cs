@@ -1,10 +1,10 @@
-﻿using CreazioneListeEbi.Interfaces;
-using CreazioneListeEbi.Models;
+﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Models;
 using OfficeOpenXml;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace CreazioneListeEbi.Services
+namespace CreazioneListe.Services
 {
     public class ExcelService : IExcelService
     {

@@ -2,6 +2,9 @@
 
 <div class="container">
     <h2>Elenco dei File Creati</h2>
+    <div class="form-group text-center">
+        <button type="button" class="btn btn-secondary" onclick="scaricaTutti()">Scarica Tutti i File</button>
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -28,3 +31,9 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    function scaricaTutti() {
+        window.location.href = '@Url.Action("DownloadAll", "File")';
+    }
+</script>

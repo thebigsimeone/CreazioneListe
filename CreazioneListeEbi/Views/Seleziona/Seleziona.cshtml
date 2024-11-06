@@ -18,7 +18,7 @@
 <div class="container">
     <h2>Seleziona Dati da Includere nel File Excel</h2>
 
-    <form asp-controller="Seleziona" asp-action="TestQuery" method="post">
+    <form asp-controller="Seleziona" asp-action="CreaFile" method="post">
         <div class="form-group text-center">
             <button type="button" class="btn btn-secondary" onclick="selezionaTutte()">Seleziona Tutto</button>
         </div>
@@ -63,7 +63,7 @@
         </table>
 
         <div class="form-group text-center mt-4">
-            <button type="submit" class="btn btn-primary">Visualizza Dati Selezionati</button>
+            <button type="submit" class="btn btn-primary">Crea File Selezionati</button>
         </div>
     </form>
 </div>

@@ -1,8 +1,8 @@
-﻿using CreazioneListeEbi.Interfaces;
-using CreazioneListeEbi.Models;
+﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CreazioneListeEbi.Controllers
+namespace CreazioneListe.Controllers
 {
     public class CreazioneController : Controller
     {
@@ -17,7 +17,7 @@ namespace CreazioneListeEbi.Controllers
 
             public async Task<IActionResult> VisualizzaDati(RichiestaExcel richiestaExcel, FormData formData)
             {
-                var data = await _databaseService.GetDataTestAsync(richiestaExcel, formData);
+                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData);
                 return View(data);
             }
         }

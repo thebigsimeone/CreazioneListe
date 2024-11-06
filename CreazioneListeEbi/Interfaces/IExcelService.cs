@@ -1,7 +1,7 @@
-﻿using CreazioneListeEbi.Models;
+﻿using CreazioneListe.Models;
 using System.Data;
 
-namespace CreazioneListeEbi.Interfaces
+namespace CreazioneListe.Interfaces
 {
     public interface IExcelService
     {
