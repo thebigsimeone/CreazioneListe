@@ -1,6 +1,6 @@
-using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using CreazioneListe.Models;
 
 namespace CreazioneListe.Controllers
 {
@@ -15,14 +15,7 @@ namespace CreazioneListe.Controllers
 
         public IActionResult Index()
         {
-            var formData = new FormData();
-            return View(formData);
-        }
-
-        [HttpPost]
-        public IActionResult Submit(FormData formData)
-        {
-            return RedirectToAction("Seleziona", "Seleziona", formData);
+            return View();
         }
 
         public IActionResult Privacy()

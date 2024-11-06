@@ -1,6 +1,9 @@
 ﻿using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -15,46 +18,59 @@ namespace CreazioneListe.Services
             _configuration = configuration;
         }
 
-        public async Task<string> CreateExcelFileAsync(RichiestaExcel richiesta)
+        public async Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, string tenant)
         {
-            var directoryPath = Path.Combine("FilesFornitori", DateTime.Now.ToString("yyyyMMdd"));
-            await CreateDirectoryIfNotExistAsync(directoryPath);
-
-            var fileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{richiesta.TotRic}_{richiesta.CodAcc}_{richiesta.CodUrg}_EBI_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-            var filePath = Path.Combine(directoryPath, fileName);
-
-            using (var package = new ExcelPackage(new FileInfo(filePath)))
+            var directoryPath = Path.Combine("C:\\Users\\Utente\\Desktop\\EXCEL", DateTime.Now.ToString("yyyyMMdd"));
+            if (!Directory.Exists(directoryPath))
             {
-                var worksheet = package.Workbook.Worksheets.Add("Dati");
-
-                // Popolare il worksheet con i dati
-                worksheet.Cells[1, 1].Value = "Codice Nazionale";
-                worksheet.Cells[1, 2].Value = "Codice Correlativo";
-                worksheet.Cells[1, 3].Value = "Nome Azienda";
-                // Continua con tutte le colonne di interesse...
-
-                // Aggiungere i dati dal modello `RichiestaExcel`
-                // Popolamento esempio, puoi personalizzare in base al contenuto di `data`
-                worksheet.Cells[2, 1].Value = richiesta.NazCor;
-                worksheet.Cells[2, 2].Value = richiesta.CodCor;
-                worksheet.Cells[2, 3].Value = richiesta.TotRic;
-                // Continua ad aggiungere i dati come necessario...
-
-                await package.SaveAsync();
+                Directory.CreateDirectory(directoryPath);
             }
 
-            return filePath;
-        }
-
-
-        public async Task<bool> CreateDirectoryIfNotExistAsync(string path)
-        {
-            if (!Directory.Exists(path))
+            var files = new List<FileInfo>();
+            for (int i = 0; i < dataTables.Count; i++)
             {
-                Directory.CreateDirectory(path);
-                await Task.CompletedTask; // Solo per simulare un metodo asincrono
+                var richiesta = richiesteExcel[i];
+                var fileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{richiesta.TotRic}_{richiesta.CodUrg}_{DateTime.Now:yyyyMMdd_HHmmssfff}.xlsx";
+                var filePath = Path.Combine(directoryPath, fileName);
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                using (var package = new ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("Dati");
+                    var dataTable = dataTables[i];
+
+                    // Aggiungi intestazioni con personalizzazione colore e stile
+                    for (int col = 0; col < dataTable.Columns.Count; col++)
+                    {
+                        var cell = worksheet.Cells[1, col + 1];
+                        cell.Value = dataTable.Columns[col].ColumnName;
+                        cell.Style.Font.Bold = true;
+                        cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        cell.Style.Fill.BackgroundColor.SetColor(Color.LightSlateGray);
+                        cell.Style.Font.Color.SetColor(Color.Black);
+                        cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    }
+
+                    // Aggiungi i dati al file Excel
+                    for (int row = 0; row < dataTable.Rows.Count; row++)
+                    {
+                        for (int col = 0; col < dataTable.Columns.Count; col++)
+                        {
+                            worksheet.Cells[row + 2, col + 1].Value = dataTable.Rows[row][col];
+                        }
+                    }
+
+                    // Adatta automaticamente la larghezza delle colonne in base ai dati
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                    // Salva il file Excel
+                    await package.SaveAsAsync(new FileInfo(filePath));
+                }
+
+                files.Add(new FileInfo(filePath));
             }
-            return true;
+
+            return await Task.FromResult(files);
         }
     }
 }

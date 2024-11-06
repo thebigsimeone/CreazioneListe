@@ -17,7 +17,7 @@ namespace CreazioneListe.Controllers
         public IActionResult VisualizzaDati(RichiestaExcel richiestaExcel, FormData formData)
         {
             // Ottiene i dati e restituisce la vista per la visualizzazione dei dati.
-            var data = _databaseService.GetSelectedAsync(richiestaExcel, formData).Result;
+            var data = _databaseService.GetSelectedAsync(richiestaExcel, formData, "EBI").Result;
             return View(data);
         }
 

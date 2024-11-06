@@ -17,7 +17,7 @@ namespace CreazioneListe.Controllers
 
             public async Task<IActionResult> VisualizzaDati(RichiestaExcel richiestaExcel, FormData formData)
             {
-                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData);
+                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, "EBI");
                 return View(data);
             }
         }

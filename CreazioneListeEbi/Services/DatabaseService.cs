@@ -16,10 +16,12 @@ namespace CreazioneListe.Services
             _configuration = configuration;
         }
 
-        public async Task<DataTable> GetSelectAsync(FormData formData)
+        public async Task<DataTable> GetSelectAsync(FormData formData, string tenant)
         {
             var dataTable = new DataTable();
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection_EBI")))
+            string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
+
+            using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
             {
                 var query = @"SELECT PBSNCO, PBSCCO, KBARA1, PBSACC, PBSURG, PBSVALORE, TBIDEC, Count(*) AS TotAcc 
                               FROM PBSACOF0
@@ -78,10 +80,12 @@ namespace CreazioneListe.Services
             return dataTable;
         }
 
-        public async Task<DataTable> GetSelectedAsync(RichiestaExcel richiestaExcel, FormData formData)
+        public async Task<DataTable> GetSelectedAsync(RichiestaExcel richiestaExcel, FormData formData, string tenant)
         {
             var dataTable = new DataTable();
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection_EBI")))
+            string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
+
+            using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
             {
                 var query = @"SELECT isNull(T1.TBBDES,'') as TipoIND, isNull(T2.TBBDES,'') as TipoCONT, PBARDGF0.*, IBAOGGF0.*, DATORILAV.*
                       FROM PBSACOF0
@@ -118,6 +122,5 @@ namespace CreazioneListe.Services
 
             return dataTable;
         }
-
     }
 }

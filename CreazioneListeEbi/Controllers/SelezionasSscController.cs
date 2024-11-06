@@ -8,47 +8,44 @@ using System.Text;
 
 namespace CreazioneListe.Controllers
 {
-    public class SelezionaController : Controller
+    public class SelezionaSscController : Controller
     {
         private readonly IDatabaseService _databaseService;
+        private readonly IModuloService _moduloService;
         private readonly IExcelService _excelService;
         private readonly IConfiguration _configuration;
 
-        public SelezionaController(IDatabaseService databaseService, IExcelService excelService, IConfiguration configuration)
+        public SelezionaSscController(IDatabaseService databaseService,
+                                      IExcelService excelService,
+                                      IConfiguration configuration,
+                                      IModuloService moduloService)
         {
             _databaseService = databaseService;
             _excelService = excelService;
             _configuration = configuration;
+            _moduloService = moduloService;
         }
 
-        public async Task<IActionResult> Seleziona(FormData formData)
+        public IActionResult Index()
         {
-            // Ottiene i dati dal database in base al form di input fornito dall'utente.
-            var data = await _databaseService.GetSelectAsync(formData);
+            var formData = new FormData();
+            return View(formData);
+        }
+
+        [HttpPost]
+        public IActionResult Submit(FormData formData)
+        {
+            return RedirectToAction("SelezionaSsc", "SelezionaSsc", formData);
+        }
+
+        public async Task<IActionResult> SelezionaSsc(FormData formData)
+        {
+            // Utilizza il servizio per chiamare LeggiModuloTesto
+            var moduloTesto = _moduloService.LeggiModuloTesto("someOggetto", "someTipo", "SSC");
+            var eredi = _moduloService.LeggiEredi("someOggetto", "someRigo", "SSC");
+            // Utilizza moduloTesto e eredi come necessario
+            var data = await _databaseService.GetSelectAsync(formData, "SSC");
             return View(data);
-        }
-
-        public async Task<IActionResult> Crea(FormData formData)
-        {
-            // Ottiene i dati dal database in base al form di input
-            var data = await _databaseService.GetSelectAsync(formData);
-
-            // Creiamo un oggetto RichiestaExcel basato sui dati di input forniti e sui dati recuperati
-            var richiesta = new RichiestaExcel
-            {
-                NazCor = formData.NazCor,
-                CodCor = formData.CodCor,
-                CodAcc = formData.CodAcc,
-                CodUrg = data.Rows.Count > 0 ? data.Rows[0]["PBSURG"].ToString() : null,
-                Formato = formData.CodAcc, 
-                TotRic = data.Rows.Count
-            };
-
-            // Creiamo il file Excel utilizzando il servizio di creazione Excel
-            var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files");
-            var filePath = await _excelService.CreateExcelFileAsync(richiesta);
-
-            return RedirectToAction("ListaFile", "File");
         }
         public async Task<IActionResult> TestQuery_view(string[] selectedRows)
         {
@@ -95,7 +92,7 @@ namespace CreazioneListe.Controllers
                 };
 
                 // Recupera tutti i dati dal database
-                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData);
+                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, "SSC");
 
                 // Filtra e rielabora le colonne che vuoi visualizzare
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
@@ -140,52 +137,15 @@ namespace CreazioneListe.Controllers
                     CodAcc = richiestaExcel.CodAcc
                 };
 
-                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData);
-                richiestaExcel.TotRic = data.Rows.Count; 
+                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, "SSC");
+                richiestaExcel.TotRic = data.Rows.Count;
                 richiesteExcel.Add(richiestaExcel);
 
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
                 dataTables.Add(dataFiltrata);
             }
 
-            var directoryPath = Path.Combine("C:\\Users\\Utente\\Desktop\\EXCEL", DateTime.Now.ToString("yyyyMMdd"));
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-
-            var files = new List<FileInfo>();
-            for (int i = 0; i < dataTables.Count; i++)
-            {
-                var richiesta = richiesteExcel[i];
-                var fileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{richiesta.CodAcc}_{richiesta.TotRic}_{richiesta.CodUrg}_{DateTime.Now:yyyyMMdd_HHmmssfff}.xlsx";
-                var filePath = Path.Combine(directoryPath, fileName);
-
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-                using (var package = new ExcelPackage())
-                {
-                    var worksheet = package.Workbook.Worksheets.Add("Dati");
-                    var dataTable = dataTables[i];
-
-                    for (int col = 0; col < dataTable.Columns.Count; col++)
-                    {
-                        worksheet.Cells[1, col + 1].Value = dataTable.Columns[col].ColumnName;
-                    }
-
-                    for (int row = 0; row < dataTable.Rows.Count; row++)
-                    {
-                        for (int col = 0; col < dataTable.Columns.Count; col++)
-                        {
-                            worksheet.Cells[row + 2, col + 1].Value = dataTable.Rows[row][col];
-                        }
-                    }
-
-                    package.SaveAs(new FileInfo(filePath));
-                }
-
-                files.Add(new FileInfo(filePath));
-            }
-
+            var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, "SSC");
             return View("~/Views/File/ListaFile.cshtml", files);
         }
 
@@ -223,7 +183,7 @@ namespace CreazioneListe.Controllers
 
                 if (richiesta.CodCor == "8033")
                 {
-                    newRow["Azienda"] = "EBI";
+                    newRow["Azienda"] = "SSC";
                 }
 
                 // Verifica se le colonne esistono nel DataTable originale prima di accedervi
@@ -298,7 +258,7 @@ namespace CreazioneListe.Controllers
                         {
                             dataTableFiltrato.Columns.Add(columnName, typeof(string));
                         }
-                        newRow[columnName] = ""; 
+                        newRow[columnName] = "";
                     }
                 }
 
@@ -328,12 +288,12 @@ namespace CreazioneListe.Controllers
 
                     if (dataTable.Columns.Contains("PBAOGG"))
                     {
-                        primoRigo += LeggiModuloTesto(row["PBAOGG"].ToString(), "003");
+                        primoRigo += _moduloService.LeggiModuloTesto(row["PBAOGG"].ToString(), "003", "SSC");
                     }
 
                     if (dataTable.Columns.Contains("IBACOG"))
                     {
-                        var erediHtml = LeggiEredi(row["IBACOG"].ToString(), primoRigo);
+                        var erediHtml = _moduloService.LeggiEredi(row["IBACOG"].ToString(), primoRigo, "SSC");
                         newRow["PrimoRigo"] = erediHtml;
                     }
                     else
@@ -346,115 +306,6 @@ namespace CreazioneListe.Controllers
             }
 
             return dataTableFiltrato;
-        }
-
-        private string LeggiModuloTesto(string cOggetto, string cTipo)
-        {
-            var altre = string.Empty;
-            var connectionString = _configuration.GetConnectionString("DefaultConnection_EBI");
-
-            using (var connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-                var sql = $"SELECT * FROM IC6DRSF0 WHERE IC6OGG = {cOggetto} AND IC6TMO = '{cTipo}' ORDER BY IC6DAT DESC";
-                using (var command = new SqlCommand(sql, connection))
-                {
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            reader.Read();
-                            var appData = reader["IC6DAT"];
-
-                            do
-                            {
-                                if (Convert.ToDouble(appData) == Convert.ToDouble(reader["IC6DAT"]))
-                                {
-                                    if (!string.IsNullOrWhiteSpace(reader["IC6TES"].ToString()))
-                                    {
-                                        altre += reader["IC6TES"].ToString().Trim() + Environment.NewLine;
-                                    }
-                                }
-                            } while (reader.Read());
-                        }
-                    }
-                }
-            }
-            return altre;
-        }
-        private string LeggiEredi(string oggetto, string primoRigo)
-        {
-            var htEredi = new StringBuilder();
-            var connectionString = _configuration.GetConnectionString("DefaultConnection_EBI");
-
-            using (var connection = new SqlConnection(connectionString))
-            {
-                connection.Open();
-                var sql = "SELECT Top 300 IBARS1, IBARS2, IBADNA, IBACIN, IBACON, " +
-                          "(SELECT Top 1 PROV From TAB_COMUNI Where Comune = IBACON) AS PROVNA, " +
-                          "IBANAN, T2.TBBCA1 AS NAZNAS, IBAIND, T4.TBBDES AS TIPOIND, IBADEI, IBACII, IBACAP, IBAIST, IBACIT, IBAPRV, IBANAZ, T5.TBBCA1 AS NAZNAZ, T1.TBBDES AS DESCARICA, IBFNUM as CFEREDE " +
-                          "FROM IBOESPF0 " +
-                          "INNER JOIN TBBTABF0 as T1 ON T1.TBBTTA = 'CAT01' AND T1.TBBCTA = IBOCCA AND T1.TBBCLI = 'IT' " +
-                          "INNER JOIN IBAOGGF0 ON IBACOG = IBOCES " +
-                          "LEFT join IBFREGF0 on IBFOGG = IBOCES and IBFTRE = 'FIS' " +
-                          "LEFT JOIN TBBTABF0 AS T2 ON T2.TBBTTA = 'NAZ' AND T2.TBBCTA = IBANAN AND T2.TBBCLI = 'IT' " +
-                          "LEFT JOIN TBBTABF0 AS T4 ON T4.TBBTTA = 'IND' AND T4.TBBCTA = IBAIND AND T4.TBBCLI = 'IT' " +
-                          "LEFT JOIN TBBTABF0 AS T5 ON T5.TBBTTA = 'NAZ' AND T5.TBBCTA = IBANAZ AND T5.TBBCLI = 'IT' " +
-                          $"WHERE IBOOGG = {oggetto} AND IBOFLC = ' ' Order By IBOFLC, IBADNA asc";
-
-                using (var command = new SqlCommand(sql, connection))
-                {
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            var rr = 0;
-                            while (reader.Read())
-                            {
-                                var note = string.Empty;
-                                var dna = reader["IBADNA"].ToString();
-                                if (!string.IsNullOrWhiteSpace(dna) && dna.Length == 8)
-                                {
-                                    dna = $"{dna.Substring(6, 2)}/{dna.Substring(4, 2)}/{dna.Substring(0, 4)}";
-                                    note = $"Nato/a il {dna}";
-                                }
-
-                                var con = reader["IBACON"].ToString();
-                                if (!string.IsNullOrWhiteSpace(con) && con.Length > 8)
-                                {
-                                    note += $" a {con} ({reader["PROVNA"]}) {reader["NAZNAS"]}";
-                                }
-
-                                rr++;
-                                var sx = rr == 1 ? primoRigo : "<td width='10%' colspan='8' align='LEFT'><font face='verdana' size='2' color='navy'>&nbsp;</font></td>";
-
-                                htEredi.AppendLine("<tr>");
-                                htEredi.AppendLine(sx);
-                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["DESCARICA"]}</font></td>");
-                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["CFEREDE"]}</font></td>");
-                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBARS1"]} {reader["IBARS2"]}</font></td>");
-                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["TipoInd"]} {reader["IBADEI"]} {reader["IBACII"]}</font></td>");
-                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBACAP"]} {reader["IBACIT"]}</font></td>");
-                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBAPRV"]}</font></td>");
-                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{note}</font></td>");
-                                htEredi.AppendLine("</tr>");
-                            }
-                        }
-                        else
-                        {
-                            htEredi.AppendLine("<tr>");
-                            htEredi.AppendLine(primoRigo);
-                            for (int i = 0; i < 7; i++)
-                            {
-                                htEredi.AppendLine("<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>&nbsp;</font></td>");
-                            }
-                            htEredi.AppendLine("</tr>");
-                        }
-                    }
-                }
-            }
-
-            return htEredi.ToString();
         }
     }
 }

@@ -5,7 +5,6 @@ namespace CreazioneListe.Interfaces
 {
     public interface IExcelService
     {
-        Task<string> CreateExcelFileAsync(RichiestaExcel richiesta);
-        Task<bool> CreateDirectoryIfNotExistAsync(string path);
+        Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, string tenant);
     }
 }

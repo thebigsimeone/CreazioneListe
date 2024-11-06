@@ -5,7 +5,7 @@ namespace CreazioneListe.Interfaces
 {
     public interface IDatabaseService
     {
-        Task<DataTable> GetSelectAsync(FormData formData);
-        Task<DataTable> GetSelectedAsync(RichiestaExcel richiestaExcel, FormData formData);
+        Task<DataTable> GetSelectAsync(FormData formData, string tenat);
+        Task<DataTable> GetSelectedAsync(RichiestaExcel richiestaExcel, FormData formData, string tenat);
     }
 }

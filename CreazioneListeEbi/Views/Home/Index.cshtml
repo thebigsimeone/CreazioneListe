@@ -7,36 +7,3 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
-
-<div class="container">
-    <h2>Creazione File Excel per Fornitori</h2>
-    <form asp-controller="Home" asp-action="Submit" method="post">
-        <div class="form-group">
-            <label for="NazCor">Codice Corrispondente</label>
-            <input type="text" class="form-control" id="NazCor" name="NazCor" maxlength="3" />
-        </div>
-        <div class="form-group">
-            <label for="CodCor">Codice Correlativo</label>
-            <input type="text" class="form-control" id="CodCor" name="CodCor" maxlength="5" />
-        </div>
-        <div class="form-group">
-            <label for="DaDataAff">Da Data Affido</label>
-            <input type="text" class="form-control" id="DaDataAff" name="DaDataAff" maxlength="10" value="@Model.DaDataAff" required placeholder="yyyyMMdd" />
-        </div>
-        <div class="form-group">
-            <label for="DataAff">A Data Affido</label>
-            <input type="text" class="form-control" id="DataAff" name="DataAff" maxlength="10" value="@Model.DataAff" required placeholder="yyyyMMdd" />
-        </div>
-        <div class="form-group">
-            <label for="CodAcc">Accertamento</label>
-            <input type="text" class="form-control" id="CodAcc" name="CodAcc" maxlength="3" />
-        </div>
-        <div class="form-group">
-            <label for="NumLotto">Numero Lotto</label>
-            <input type="text" class="form-control" id="NumLotto" name="NumLotto" maxlength="4" />
-        </div>
-        <div class="form-group text-center mt-4">
-            <button type="submit" class="btn btn-primary">Elabora</button>
-        </div>
-    </form>
-</div>
