@@ -21,9 +21,11 @@ namespace CreazioneListe.Services
             using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
             {
                 connection.Open();
-                var sql = $"SELECT * FROM IC6DRSF0 WHERE IC6OGG = @cOggetto AND IC6TMO = @cTipo ORDER BY IC6DAT DESC";
+                var sql = @"SELECT * FROM IC6DRSF0 WHERE IC6OGG = @cOggetto AND IC6TMO = @cTipo ORDER BY IC6DAT DESC";
+
                 using (var command = new SqlCommand(sql, connection))
                 {
+                    // Aggiunta dei parametri per prevenire SQL injection
                     command.Parameters.AddWithValue("@cOggetto", cOggetto);
                     command.Parameters.AddWithValue("@cTipo", cTipo);
 
@@ -59,20 +61,21 @@ namespace CreazioneListe.Services
             using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
             {
                 connection.Open();
-                var sql = "SELECT Top 300 IBARS1, IBARS2, IBADNA, IBACIN, IBACON, " +
-                          "(SELECT Top 1 PROV From TAB_COMUNI Where Comune = IBACON) AS PROVNA, " +
-                          "IBANAN, T2.TBBCA1 AS NAZNAS, IBAIND, T4.TBBDES AS TIPOIND, IBADEI, IBACII, IBACAP, IBAIST, IBACIT, IBAPRV, IBANAZ, T5.TBBCA1 AS NAZNAZ, T1.TBBDES AS DESCARICA, IBFNUM as CFEREDE " +
-                          "FROM IBOESPF0 " +
-                          "INNER JOIN TBBTABF0 as T1 ON T1.TBBTTA = 'CAT01' AND T1.TBBCTA = IBOCCA AND T1.TBBCLI = 'IT' " +
-                          "INNER JOIN IBAOGGF0 ON IBACOG = IBOCES " +
-                          "LEFT join IBFREGF0 on IBFOGG = IBOCES and IBFTRE = 'FIS' " +
-                          "LEFT JOIN TBBTABF0 AS T2 ON T2.TBBTTA = 'NAZ' AND T2.TBBCTA = IBANAN AND T2.TBBCLI = 'IT' " +
-                          "LEFT JOIN TBBTABF0 AS T4 ON T4.TBBTTA = 'IND' AND T4.TBBCTA = IBAIND AND T4.TBBCLI = 'IT' " +
-                          "LEFT JOIN TBBTABF0 AS T5 ON T5.TBBTTA = 'NAZ' AND T5.TBBCTA = IBANAZ AND T5.TBBCLI = 'IT' " +
-                          $"WHERE IBOOGG = @oggetto AND IBOFLC = ' ' Order By IBOFLC, IBADNA asc";
+                var sql = @"SELECT TOP 300 IBARS1, IBARS2, IBADNA, IBACIN, IBACON,
+                            (SELECT TOP 1 PROV FROM TAB_COMUNI WHERE Comune = IBACON) AS PROVNA,
+                            IBANAN, T2.TBBCA1 AS NAZNAS, IBAIND, T4.TBBDES AS TIPOIND, IBADEI, IBACII, IBACAP, IBAIST, IBACIT, IBAPRV, IBANAZ, T5.TBBCA1 AS NAZNAZ, T1.TBBDES AS DESCARICA, IBFNUM AS CFEREDE
+                            FROM IBOESPF0
+                            INNER JOIN TBBTABF0 AS T1 ON T1.TBBTTA = 'CAT01' AND T1.TBBCTA = IBOCCA AND T1.TBBCLI = 'IT'
+                            INNER JOIN IBAOGGF0 ON IBACOG = IBOCES
+                            LEFT JOIN IBFREGF0 ON IBFOGG = IBOCES AND IBFTRE = 'FIS'
+                            LEFT JOIN TBBTABF0 AS T2 ON T2.TBBTTA = 'NAZ' AND T2.TBBCTA = IBANAN AND T2.TBBCLI = 'IT'
+                            LEFT JOIN TBBTABF0 AS T4 ON T4.TBBTTA = 'IND' AND T4.TBBCTA = IBAIND AND T4.TBBCLI = 'IT'
+                            LEFT JOIN TBBTABF0 AS T5 ON T5.TBBTTA = 'NAZ' AND T5.TBBCTA = IBANAZ AND T5.TBBCLI = 'IT'
+                            WHERE IBOOGG = @oggetto AND IBOFLC = ' ' ORDER BY IBOFLC, IBADNA ASC";
 
                 using (var command = new SqlCommand(sql, connection))
                 {
+                    // Aggiunta dei parametri per prevenire SQL injection
                     command.Parameters.AddWithValue("@oggetto", oggetto);
 
                     using (var reader = command.ExecuteReader())
@@ -104,7 +107,7 @@ namespace CreazioneListe.Services
                                 htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["DESCARICA"]}</font></td>");
                                 htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["CFEREDE"]}</font></td>");
                                 htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBARS1"]} {reader["IBARS2"]}</font></td>");
-                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["TipoInd"]} {reader["IBADEI"]} {reader["IBACII"]}</font></td>");
+                                htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["TIPOIND"]} {reader["IBADEI"]} {reader["IBACII"]}</font></td>");
                                 htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBACAP"]} {reader["IBACIT"]}</font></td>");
                                 htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBAPRV"]}</font></td>");
                                 htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{note}</font></td>");
@@ -127,6 +130,8 @@ namespace CreazioneListe.Services
 
             return htEredi.ToString();
         }
+
+        // Metodo aggiornato con parametri per prevenire SQL Injection
         public void AggiornaFileCorrispondenti(int annoProt, int numeroProt, string codAcc, string codUrg, string nazCor, string codCor, string oFile, string tenant)
         {
             try
@@ -139,11 +144,13 @@ namespace CreazioneListe.Services
                 {
                     connection.Open();
 
-                    var countSql = "SELECT COUNT(*) FROM PBSACOF0 WHERE PBSAPR = @annoProt AND PBSNPR = @numeroProt AND PBSACC = @codAcc " +
-                                   "AND PBSURG = @codUrg AND PBSNCO = @nazCor AND PBSCCO = @codCor";
+                    var countSql = @"SELECT COUNT(*) FROM PBSACOF0 
+                                     WHERE PBSAPR = @annoProt AND PBSNPR = @numeroProt AND PBSACC = @codAcc 
+                                     AND PBSURG = @codUrg AND PBSNCO = @nazCor AND PBSCCO = @codCor";
 
                     using (var countCommand = new SqlCommand(countSql, connection))
                     {
+                        // Aggiunta dei parametri per prevenire SQL injection
                         countCommand.Parameters.AddWithValue("@annoProt", annoProt);
                         countCommand.Parameters.AddWithValue("@numeroProt", numeroProt);
                         countCommand.Parameters.AddWithValue("@codAcc", codAcc);
@@ -154,11 +161,15 @@ namespace CreazioneListe.Services
                         int count = (int)countCommand.ExecuteScalar();
                         if (count > 0)
                         {
-                            var updateSql = "UPDATE PBSACOF0 SET PBSSCARICO = @scarico, PBSFILE = @file WHERE PBSAPR = @annoProt AND PBSNPR = @numeroProt " +
-                                            "AND PBSACC = @codAcc AND PBSURG = @codUrg AND PBSNCO = @nazCor AND PBSCCO = @codCor";
+                            var updateSql = @"UPDATE PBSACOF0 
+                                              SET PBSSCARICO = @scarico, PBSFILE = @file 
+                                              WHERE PBSAPR = @annoProt AND PBSNPR = @numeroProt 
+                                              AND PBSACC = @codAcc AND PBSURG = @codUrg 
+                                              AND PBSNCO = @nazCor AND PBSCCO = @codCor";
 
                             using (var updateCommand = new SqlCommand(updateSql, connection))
                             {
+                                // Aggiunta dei parametri per prevenire SQL injection
                                 updateCommand.Parameters.AddWithValue("@scarico", "S");
                                 updateCommand.Parameters.AddWithValue("@file", oFile);
                                 updateCommand.Parameters.AddWithValue("@annoProt", annoProt);
@@ -175,8 +186,6 @@ namespace CreazioneListe.Services
                         else
                         {
                             Console.WriteLine("Il record non esiste. Verifica i parametri forniti.");
-                            Console.WriteLine($"SELECT COUNT(*) FROM PBSACOF0 WHERE PBSAPR = {annoProt} AND PBSNPR = {numeroProt} AND PBSACC = '{codAcc}' " +
-                                              $"AND PBSURG = '{codUrg}' AND PBSNCO = '{nazCor}' AND PBSCCO = {codCor}");
                         }
                     }
                 }

@@ -20,7 +20,11 @@ namespace CreazioneListe.Services
 
         public async Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, string tenant)
         {
-            var directoryPath = Path.Combine("C:\\Users\\Utente\\Desktop\\EXCEL", DateTime.Now.ToString("yyyyMMdd"));
+            // Definisci il percorso della directory in base al valore del tenant
+            var baseDirectory = Path.Combine("C:\\Users\\Utente\\Desktop\\EXCEL", tenant);
+            var directoryPath = Path.Combine(baseDirectory, DateTime.Now.ToString("yyyyMMdd"));
+
+            // Crea la directory se non esiste
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);

@@ -1,10 +1,7 @@
 ﻿using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using OfficeOpenXml;
 using System.Data;
-using System.Text;
 
 namespace CreazioneListe.Controllers
 {

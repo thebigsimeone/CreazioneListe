@@ -3,35 +3,42 @@
     ViewData["Title"] = "Home Page EBI";
 }
 
-<div class="container">
+<div class="container mt-5">
     <h2>Creazione File Excel per Fornitori EBI</h2>
     <form asp-controller="SelezionaEbi" asp-action="Submit" method="post">
-        <div class="form-group">
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="NazCor" name="NazCor" maxlength="3" placeholder="Codice Corrispondente" />
             <label for="NazCor">Codice Corrispondente</label>
-            <input type="text" class="form-control" id="NazCor" name="NazCor" maxlength="3" />
         </div>
-        <div class="form-group">
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="CodCor" name="CodCor" maxlength="5" placeholder="Codice Correlativo" />
             <label for="CodCor">Codice Correlativo</label>
-            <input type="text" class="form-control" id="CodCor" name="CodCor" maxlength="5" />
         </div>
-        <div class="form-group">
-            <label for="DaDataAff">Da Data Affido</label>
+        <div class="form-floating mb-3">
             <input type="text" class="form-control" id="DaDataAff" name="DaDataAff" maxlength="10" value="@Model.DaDataAff" required placeholder="yyyyMMdd" />
+            <label for="DaDataAff">Da Data Affido</label>
         </div>
-        <div class="form-group">
-            <label for="DataAff">A Data Affido</label>
+        <div class="form-floating mb-3">
             <input type="text" class="form-control" id="DataAff" name="DataAff" maxlength="10" value="@Model.DataAff" required placeholder="yyyyMMdd" />
+            <label for="DataAff">A Data Affido</label>
         </div>
-        <div class="form-group">
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="CodAcc" name="CodAcc" maxlength="3" placeholder="Accertamento" />
             <label for="CodAcc">Accertamento</label>
-            <input type="text" class="form-control" id="CodAcc" name="CodAcc" maxlength="3" />
         </div>
-        <div class="form-group">
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="NumLotto" name="NumLotto" maxlength="4" placeholder="Numero Lotto" />
             <label for="NumLotto">Numero Lotto</label>
-            <input type="text" class="form-control" id="NumLotto" name="NumLotto" maxlength="4" />
         </div>
         <div class="form-group text-center mt-4">
-            <button type="submit" class="btn btn-primary">Elabora</button>
+            <button type="submit" class="btn btn-outline-info">Elabora</button>
         </div>
     </form>
 </div>
+
+<style>
+    .form-floating .form-control:focus {
+        border-color: cornflowerblue; /* Colore del bordo al focus */
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Aggiungi un effetto di ombreggiatura */
+    }
+</style>

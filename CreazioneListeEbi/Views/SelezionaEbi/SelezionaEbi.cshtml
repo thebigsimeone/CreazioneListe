@@ -1,69 +1,85 @@
 ﻿@model System.Data.DataTable
-
+@{
+    ViewData["Title"] = "Seleziona File EBI";
+}
 @{
     // Mappatura per sostituire i nomi tecnici delle colonne con nomi più leggibili
     var columnNamesMap = new Dictionary<string, string>
     {
-        { "PBSNCO", "Codice Nazionale" },
-        { "PBSCCO", "Codice Correlativo" },
-        { "KBARA1", "Nome Azienda" },
-        { "PBSACC", "Codice Accertamento" },
-        { "PBSURG", "Tipo Urgenza" },
-        { "PBSVALORE", "Valore" },
-        { "TBIDEC", "Descrizione" },
-        { "TotAcc", "Totale Accertamenti" }
+        { "PBSNCO", "CodNaz" },
+        { "PBSCCO", "CodCorr" },
+        { "KBARA1", "Fornitore" },
+        { "PBSACC", "CodAcc" },
+        { "PBSURG", "Urg" },
+        { "PBSVALORE", "Val" },
+        { "TBIDEC", "Desc" },
+        { "TotAcc", "TotAcc" }
     };
 }
 
-<div class="container">
-    <h2>Seleziona Dati da Includere nel File Excel</h2>
+<div class="container-fluid">
+    <h2 class="text-center my-4">Seleziona Dati da Includere nel File Excel EBI</h2>
 
     <form asp-controller="SelezionaEbi" asp-action="CreaFile" method="post">
-        <div class="form-group text-center">
-            <button type="button" class="btn btn-secondary" onclick="selezionaTutte()">Seleziona Tutto</button>
+        <div class="form-group text-center mb-3">
+            <button type="button" class="btn btn-outline-secondary" onclick="selezionaTutte()">Seleziona Tutto</button>
         </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Seleziona</th>
-                    @foreach (System.Data.DataColumn column in Model.Columns)
-                    {
-                        // Utilizza il nome descrittivo se disponibile, altrimenti usa il nome originale
-                        <th>@(columnNamesMap.ContainsKey(column.ColumnName) ? columnNamesMap[column.ColumnName] : column.ColumnName)</th>
-                    }
-                    <th>Formato</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (int i = 0; i < Model.Rows.Count; i++)
-                {
-                    var row = Model.Rows[i];
-                    <tr>
-                        <td>
-                            <input type="checkbox" name="selectedRows" class="row-checkbox" value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"],@i" />
-                        </td>
-                        @foreach (var item in row.ItemArray)
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="thead-dark">
+                    <tr class="table-primary">
+                        <th>Seleziona</th>
+                        @foreach (System.Data.DataColumn column in Model.Columns)
                         {
-                            <td>@item</td>
+                            // Utilizza il nome descrittivo se disponibile, altrimenti usa il nome originale
+                            <th>@(columnNamesMap.ContainsKey(column.ColumnName) ? columnNamesMap[column.ColumnName] : column.ColumnName)</th>
                         }
-                        <td>
-                            @{
-                                // Nome univoco per i radio buttons di ogni riga, includendo l'indice per differenziarli
-                                string radioGroupName = $"formato_{i}";
-                            }
-                            <input type="radio" name="@radioGroupName" value="B" onchange="aggiornaFormato(@i, 'B')" /> Base
-                            <input type="radio" name="@radioGroupName" value="R" onchange="aggiornaFormato(@i, 'R')" /> RT4/RT8
-                            <input type="radio" name="@radioGroupName" value="EREDI" onchange="aggiornaFormato(@i, 'EREDI')" /> RT6
-                            <input type="radio" name="@radioGroupName" value="CLIENTE" onchange="aggiornaFormato(@i, 'CLIENTE')" /> CODCLI
-                            <input type="hidden" name="formato" id="formato_@i" value="" />
-                        </td>
+                        <th>Formato</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Rows.Count; i++)
+                    {
+                        var row = Model.Rows[i];
+                        <tr>
+                            <td class="text-center">
+                                <input type="checkbox" name="selectedRows" class="row-checkbox" value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"],@i" />
+                            </td>
+                            @foreach (var item in row.ItemArray)
+                            {
+                                <td>@item</td>
+                            }
+                            <td class="text-center">
+                                @{
+                                    // Nome univoco per i radio buttons di ogni riga, includendo l'indice per differenziarli
+                                    string radioGroupName = $"formato_{i}";
+                                }
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" name="@radioGroupName" value="B" class="form-check-input" onchange="aggiornaFormato(@i, 'B')" />
+                                    <label class="form-check-label">Base</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" name="@radioGroupName" value="R" class="form-check-input" onchange="aggiornaFormato(@i, 'R')" />
+                                    <label class="form-check-label">RT4/RT8</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" name="@radioGroupName" value="EREDI" class="form-check-input" onchange="aggiornaFormato(@i, 'EREDI')" />
+                                    <label class="form-check-label">RT6</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input type="radio" name="@radioGroupName" value="CLIENTE" class="form-check-input" onchange="aggiornaFormato(@i, 'CLIENTE')" />
+                                    <label class="form-check-label">CODCLI</label>
+                                </div>
+                                <input type="hidden" name="formato" id="formato_@i" value="" />
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
 
         <div class="form-group text-center mt-4">
-            <button type="submit" class="btn btn-primary">Crea File Selezionati</button>
+            <button type="submit" class="btn btn-outline-primary">Crea File Selezionati</button>
         </div>
     </form>
 </div>
