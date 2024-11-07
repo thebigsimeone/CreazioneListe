@@ -5,11 +5,11 @@ using System.Data;
 
 namespace CreazioneListe.Controllers
 {
-    public class TestController : Controller
+    public class TestVisualizzazioneController : Controller
     {
         private readonly IDatabaseService _databaseService;
 
-        public TestController(IDatabaseService databaseService)
+        public TestVisualizzazioneController(IDatabaseService databaseService)
         {
             _databaseService = databaseService;
         }

@@ -143,6 +143,17 @@ namespace CreazioneListe.Controllers
 
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
                 dataTables.Add(dataFiltrata);
+
+                /*_moduloService.AggiornaFileCorrispondenti(
+                                                            int.Parse(data.Rows[0]["PBAANP"].ToString()),
+                                                            int.Parse(data.Rows[0]["PBANUP"].ToString()),
+                                                            richiestaExcel.CodAcc,
+                                                            richiestaExcel.CodUrg,
+                                                            richiestaExcel.NazCor,
+                                                            richiestaExcel.CodCor,
+                                                            "",
+                                                            "EBI"
+                                                            );*/
             }
 
             var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, "EBI");

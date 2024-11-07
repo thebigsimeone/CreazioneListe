@@ -127,5 +127,68 @@ namespace CreazioneListe.Services
 
             return htEredi.ToString();
         }
+        public void AggiornaFileCorrispondenti(int annoProt, int numeroProt, string codAcc, string codUrg, string nazCor, string codCor, string oFile, string tenant)
+        {
+            try
+            {
+                // Seleziona la stringa di connessione appropriata in base al tenant
+                string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
+
+                // Connessione al database
+                using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
+                {
+                    connection.Open();
+
+                    var countSql = "SELECT COUNT(*) FROM PBSACOF0 WHERE PBSAPR = @annoProt AND PBSNPR = @numeroProt AND PBSACC = @codAcc " +
+                                   "AND PBSURG = @codUrg AND PBSNCO = @nazCor AND PBSCCO = @codCor";
+
+                    using (var countCommand = new SqlCommand(countSql, connection))
+                    {
+                        countCommand.Parameters.AddWithValue("@annoProt", annoProt);
+                        countCommand.Parameters.AddWithValue("@numeroProt", numeroProt);
+                        countCommand.Parameters.AddWithValue("@codAcc", codAcc);
+                        countCommand.Parameters.AddWithValue("@codUrg", codUrg);
+                        countCommand.Parameters.AddWithValue("@nazCor", nazCor);
+                        countCommand.Parameters.AddWithValue("@codCor", codCor);
+
+                        int count = (int)countCommand.ExecuteScalar();
+                        if (count > 0)
+                        {
+                            var updateSql = "UPDATE PBSACOF0 SET PBSSCARICO = @scarico, PBSFILE = @file WHERE PBSAPR = @annoProt AND PBSNPR = @numeroProt " +
+                                            "AND PBSACC = @codAcc AND PBSURG = @codUrg AND PBSNCO = @nazCor AND PBSCCO = @codCor";
+
+                            using (var updateCommand = new SqlCommand(updateSql, connection))
+                            {
+                                updateCommand.Parameters.AddWithValue("@scarico", "S");
+                                updateCommand.Parameters.AddWithValue("@file", oFile);
+                                updateCommand.Parameters.AddWithValue("@annoProt", annoProt);
+                                updateCommand.Parameters.AddWithValue("@numeroProt", numeroProt);
+                                updateCommand.Parameters.AddWithValue("@codAcc", codAcc);
+                                updateCommand.Parameters.AddWithValue("@codUrg", codUrg);
+                                updateCommand.Parameters.AddWithValue("@nazCor", nazCor);
+                                updateCommand.Parameters.AddWithValue("@codCor", codCor);
+
+                                // Esegui l'aggiornamento
+                                updateCommand.ExecuteNonQuery();
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Il record non esiste. Verifica i parametri forniti.");
+                            Console.WriteLine($"SELECT COUNT(*) FROM PBSACOF0 WHERE PBSAPR = {annoProt} AND PBSNPR = {numeroProt} AND PBSACC = '{codAcc}' " +
+                                              $"AND PBSURG = '{codUrg}' AND PBSNCO = '{nazCor}' AND PBSCCO = {codCor}");
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine($"Errore SQL: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errore generico: {ex.Message}");
+            }
+        }
     }
 }
