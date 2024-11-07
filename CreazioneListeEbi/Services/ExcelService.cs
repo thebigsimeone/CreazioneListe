@@ -46,7 +46,7 @@ namespace CreazioneListe.Services
                         cell.Value = dataTable.Columns[col].ColumnName;
                         cell.Style.Font.Bold = true;
                         cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                        cell.Style.Fill.BackgroundColor.SetColor(Color.LightSlateGray);
+                        cell.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
                         cell.Style.Font.Color.SetColor(Color.Black);
                         cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                     }
