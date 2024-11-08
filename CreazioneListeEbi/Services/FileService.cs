@@ -1,4 +1,5 @@
 ﻿using CreazioneListe.Interfaces;
+using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.IO.Compression;
 
@@ -7,11 +8,13 @@ namespace CreazioneListe.Services
     public class FileService : IFileService
     {
         private readonly string _baseDirectory;
+        private readonly IConfiguration _configuration;
 
-        public FileService()
+        public FileService(IConfiguration configuration)
         {
             // Percorso base per salvare i file
             _baseDirectory = Path.Combine("C:\\Users\\Utente\\Desktop\\EXCEL");
+            _configuration = configuration;
         }
 
         public List<FileInfo> GetFilesList(string tenant)

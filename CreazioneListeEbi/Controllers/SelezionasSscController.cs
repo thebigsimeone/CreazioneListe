@@ -144,7 +144,7 @@ namespace CreazioneListe.Controllers
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
                 dataTables.Add(dataFiltrata);
 
-/*                _moduloService.AggiornaFileCorrispondenti(
+                _moduloService.AggiornaFileCorrispondenti(
                                             int.Parse(data.Rows[0]["PBAANP"].ToString()),
                                             int.Parse(data.Rows[0]["PBANUP"].ToString()),
                                             richiestaExcel.CodAcc,
@@ -153,7 +153,7 @@ namespace CreazioneListe.Controllers
                                             richiestaExcel.CodCor,
                                             "",
                                             "SSC"
-                                            );*/
+                                            );
             }
 
             var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, "SSC");
