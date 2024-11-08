@@ -53,6 +53,9 @@ namespace CreazioneListe.Services
                         cell.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
                         cell.Style.Font.Color.SetColor(Color.Black);
                         cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                        // Imposta il formato delle celle come Testo
+                        worksheet.Column(col + 1).Style.Numberformat.Format = "@";
                     }
 
                     // Aggiungi i dati al file Excel

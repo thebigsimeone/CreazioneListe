@@ -1,0 +1,27 @@
+﻿@model List<System.IO.FileInfo>
+@{
+    var tenant = ViewBag.Tenant ?? "EBI";
+}
+
+<h2>Lista File Generati per Tenant: @tenant</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nome File</th>
+            <th>Azioni</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var file in Model)
+        {
+            <tr>
+                <td>@file.Name</td>
+                <td>
+                    <a asp-controller="File" asp-action="Download" asp-route-tenant="@tenant" asp-route-fileName="@file.Name" class="btn btn-outline-primary">Download</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-controller="File" asp-action="DownloadAll" asp-route-tenant="@tenant" class="btn btn-outline-success mt-3">Download Tutti i File</a>

@@ -1,10 +1,7 @@
 ﻿using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using OfficeOpenXml;
 using System.Data;
-using System.Text;
 
 namespace CreazioneListe.Controllers
 {
@@ -103,7 +100,7 @@ namespace CreazioneListe.Controllers
             return View("~/Views/Test/VisualizzaDati.cshtml", dataTables);
         }
 
-        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato)
+        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string tenant = "SSC")
         {
             if (selectedRows == null || selectedRows.Length == 0)
             {
@@ -137,27 +134,28 @@ namespace CreazioneListe.Controllers
                     CodAcc = richiestaExcel.CodAcc
                 };
 
-                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, "SSC");
+                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, tenant);
                 richiestaExcel.TotRic = data.Rows.Count;
                 richiesteExcel.Add(richiestaExcel);
 
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
                 dataTables.Add(dataFiltrata);
 
-                _moduloService.AggiornaFileCorrispondenti(
-                                            int.Parse(data.Rows[0]["PBAANP"].ToString()),
-                                            int.Parse(data.Rows[0]["PBANUP"].ToString()),
-                                            richiestaExcel.CodAcc,
-                                            richiestaExcel.CodUrg,
-                                            richiestaExcel.NazCor,
-                                            richiestaExcel.CodCor,
-                                            "",
-                                            "SSC"
-                                            );
+                /*_moduloService.AggiornaFileCorrispondenti(
+                    int.Parse(data.Rows[0]["PBAANP"].ToString()),
+                    int.Parse(data.Rows[0]["PBANUP"].ToString()),
+                    richiestaExcel.CodAcc,
+                    richiestaExcel.CodUrg,
+                    richiestaExcel.NazCor,
+                    richiestaExcel.CodCor,
+                    "",
+                    tenant
+                );*/
             }
 
-            var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, "SSC");
-            return View("~/Views/File/ListaFile.cshtml", files);
+            var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, tenant);
+            ViewBag.Tenant = tenant;  // Salva tenant nel ViewBag per passarlo alla vista
+            return View("~/Views/File/ListaFileSsc.cshtml", files);
         }
 
         // Metodo per filtrare e rielaborare le colonne del DataTable con le condizioni richieste
@@ -204,17 +202,28 @@ namespace CreazioneListe.Controllers
                 }
                 else
                 {
-                    newRow["Protocollo"] = "N/A"; // Valore di default se la colonna non esiste
+                    newRow["Protocollo"] = "N/A";
                 }
 
-                if (dataTable.Columns.Contains("PBACFI"))
+                string codiceFiscale = string.Empty;
+
+                // Se PBACFI è vuoto, utilizza PBAPIV
+                if (dataTable.Columns.Contains("PBACFI") && !string.IsNullOrWhiteSpace(row["PBACFI"].ToString()))
                 {
-                    newRow["Codice Fiscale"] = row["PBACFI"].ToString();
+                    codiceFiscale = row["PBACFI"].ToString();
                 }
-                else
+                else if (dataTable.Columns.Contains("PBAPIV") && !string.IsNullOrWhiteSpace(row["PBAPIV"].ToString()))
                 {
-                    newRow["Codice Fiscale"] = "N/A"; // Valore di default se la colonna non esiste
+                    codiceFiscale = row["PBAPIV"].ToString();
                 }
+
+                // Se il codice fiscale ha lunghezza 11, aggiungi un apice all'inizio
+/*                if (codiceFiscale.Length == 11)
+                {
+                    codiceFiscale = "'" + codiceFiscale;
+                }*/
+
+                newRow["Codice Fiscale"] = string.IsNullOrEmpty(codiceFiscale) ? "N/A" : codiceFiscale;
 
                 // Popola la colonna CLIENTE solo se richiesto
                 if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
@@ -222,7 +231,6 @@ namespace CreazioneListe.Controllers
                     newRow["CLIENTE"] = row["PBACLI"].ToString();
                 }
 
-                // Condizioni aggiuntive per CodAcc
                 if (richiesta.CodAcc == "BAN" || richiesta.CodAcc == "CCL")
                 {
                     if (!dataTableFiltrato.Columns.Contains("PBADEN"))
@@ -318,5 +326,6 @@ namespace CreazioneListe.Controllers
 
             return dataTableFiltrato;
         }
+
     }
 }

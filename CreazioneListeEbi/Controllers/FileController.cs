@@ -15,9 +15,15 @@ namespace CreazioneListe.Controllers
 
         public IActionResult ListaFile(string tenant)
         {
+            if (string.IsNullOrEmpty(tenant))
+            {
+                return BadRequest("Tenant non specificato.");
+            }
+
             try
             {
                 var files = _fileService.GetFilesList(tenant);
+                ViewBag.Tenant = tenant;
                 return View(files);
             }
             catch (Exception ex)
@@ -28,6 +34,11 @@ namespace CreazioneListe.Controllers
 
         public IActionResult Download(string tenant, string fileName)
         {
+            if (string.IsNullOrEmpty(tenant))
+            {
+                return BadRequest("Tenant non specificato.");
+            }
+
             try
             {
                 var file = _fileService.GetFile(tenant, fileName);
@@ -52,6 +63,11 @@ namespace CreazioneListe.Controllers
 
         public IActionResult DownloadAll(string tenant)
         {
+            if (string.IsNullOrEmpty(tenant))
+            {
+                return BadRequest("Tenant non specificato.");
+            }
+
             try
             {
                 var zipFile = _fileService.CreateZipFile(tenant);

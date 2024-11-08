@@ -8,7 +8,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-// Configura la connessione ai servizi, incluso il caricamento della configurazione di produzione
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                      .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
                      .AddEnvironmentVariables();
@@ -38,16 +37,13 @@ if (!app.Environment.IsDevelopment())
 {
     // Gestione degli errori in modo da mostrare una pagina amichevole agli utenti
     app.UseExceptionHandler("/Home/Error");
-    // Imposta HSTS per aumentare la sicurezza dell'applicazione
     app.UseHsts();
 }
 
 // Forza l'utilizzo di HTTPS per tutte le richieste
 app.UseHttpsRedirection();
-// Consenti l'uso di file statici come JavaScript, CSS, immagini
 app.UseStaticFiles();
 
-// Abilita CORS con la policy configurata
 app.UseCors("CorsPolicy");
 
 // Abilita la protezione delle intestazioni per prevenire attacchi comuni
@@ -65,7 +61,6 @@ app.UseCsp(opts => opts
     .ScriptSources(s => s.Self().UnsafeInline())
 );
 
-// Abilita il routing delle richieste
 app.UseRouting();
 
 // Abilita l'autenticazione e l'autorizzazione (aggiungere configurazioni se necessario)
