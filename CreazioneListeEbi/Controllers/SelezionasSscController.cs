@@ -141,16 +141,19 @@ namespace CreazioneListe.Controllers
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
                 dataTables.Add(dataFiltrata);
 
-                _moduloService.AggiornaFileCorrispondenti(
-                    int.Parse(data.Rows[0]["PBAANP"].ToString()),
-                    int.Parse(data.Rows[0]["PBANUP"].ToString()),
-                    richiestaExcel.CodAcc,
-                    richiestaExcel.CodUrg,
-                    richiestaExcel.NazCor,
-                    richiestaExcel.CodCor,
-                    "",
-                    tenant
-                );
+                foreach (DataRow row in data.Rows)
+                {
+                    _moduloService.AggiornaFileCorrispondenti(
+                        int.Parse(row["PBAANP"].ToString()),
+                        int.Parse(row["PBANUP"].ToString()),
+                        richiestaExcel.CodAcc,
+                        richiestaExcel.CodUrg,
+                        richiestaExcel.NazCor,
+                        richiestaExcel.CodCor,
+                        "",
+                        tenant
+                    );
+                }
             }
 
             var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, tenant);
