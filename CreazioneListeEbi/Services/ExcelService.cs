@@ -34,8 +34,18 @@ namespace CreazioneListe.Services
             for (int i = 0; i < dataTables.Count; i++)
             {
                 var richiesta = richiesteExcel[i];
-                var fileName = $"{tenant}_{richiesta.NazCor}-{richiesta.CodCor}_{richiesta.CodAcc}_{richiesta.CodUrg}_{DateTime.Now:yyyyMMdd_HHmmssfff}_{richiesta.TotRic}.xlsx";
+                var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{richiesta.CodUrg}_{DateTime.Now:yyyyMMdd_HHmmss}_{richiesta.TotRic}";
+                var fileName = baseFileName + ".xlsx";
                 var filePath = Path.Combine(directoryPath, fileName);
+                int fileIndex = 1;
+
+                // Aggiungi un suffisso al nome del file se esiste già
+                while (File.Exists(filePath))
+                {
+                    fileName = $"{baseFileName}_{fileIndex}.xlsx";
+                    filePath = Path.Combine(directoryPath, fileName);
+                    fileIndex++;
+                }
 
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
                 using (var package = new ExcelPackage())

@@ -141,7 +141,7 @@ namespace CreazioneListe.Controllers
                 var dataFiltrata = FiltraColonne(data, richiestaExcel);
                 dataTables.Add(dataFiltrata);
 
-                foreach (DataRow row in data.Rows)
+/*                foreach (DataRow row in data.Rows)
                 {
                     _moduloService.AggiornaFileCorrispondenti(
                         int.Parse(row["PBAANP"].ToString()),
@@ -153,7 +153,7 @@ namespace CreazioneListe.Controllers
                         "",
                         tenant
                     );
-                }
+                }*/
             }
 
             var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, tenant);
