@@ -18,6 +18,7 @@ builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<IModuloService, ModuloService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IColonneFiltraggioService, ColonneFiltraggioService>();
 
 builder.Services.AddMemoryCache();
 
