@@ -25,18 +25,45 @@ builder.Services.AddMemoryCache();
 // Costruisci l'applicazione
 var app = builder.Build();
 
-// Configura il middleware per gestire il pipeline delle richieste HTTP
 if (!app.Environment.IsDevelopment())
 {
-    // Gestione degli errori in modo da mostrare una pagina amichevole agli utenti
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+            var exception = exceptionHandlerPathFeature?.Error;
+
+            if (exception != null)
+            {
+                var logger = app.Services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(exception, "Si è verificato un errore non gestito.");
+            }
+
+            context.Response.Redirect("/Home/Error");
+        });
+    });
     app.UseHsts();
 }
 else
 {
-    // Abilita la visualizzazione dei dettagli degli errori per un debug più semplice
     app.UseDeveloperExceptionPage();
 }
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next.Invoke();
+    }
+    catch (Exception ex)
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Errore durante la gestione della richiesta HTTP per {RequestPath}", context.Request.Path);
+        throw;
+    }
+});
+
 
 // Forza l'utilizzo di HTTPS per tutte le richieste
 app.UseHttpsRedirection();
