@@ -19,6 +19,8 @@ builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<IModuloService, ModuloService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
+builder.Services.AddMemoryCache();
+
 // Costruisci l'applicazione
 var app = builder.Build();
 

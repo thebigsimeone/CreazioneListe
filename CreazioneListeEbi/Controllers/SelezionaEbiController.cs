@@ -1,6 +1,7 @@
 ﻿using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using System.Data;
 
 namespace CreazioneListe.Controllers
@@ -11,16 +12,19 @@ namespace CreazioneListe.Controllers
         private readonly IModuloService _moduloService;
         private readonly IExcelService _excelService;
         private readonly IConfiguration _configuration;
+        private readonly IMemoryCache _memoryCache;
 
         public SelezionaEbiController(IDatabaseService databaseService,
                                       IExcelService excelService,
                                       IConfiguration configuration,
-                                      IModuloService moduloService)
+                                      IModuloService moduloService,
+                                      IMemoryCache memoryCache)
         {
             _databaseService = databaseService;
             _excelService = excelService;
             _configuration = configuration;
             _moduloService = moduloService;
+            _memoryCache = memoryCache;
         }
         public IActionResult Index()
         {
@@ -107,6 +111,7 @@ namespace CreazioneListe.Controllers
                 return BadRequest("Nessuna riga selezionata.");
             }
 
+            var cacheKey = Guid.NewGuid().ToString();
             var dataTables = new List<DataTable>();
             var richiesteExcel = new List<RichiestaExcel>();
 
@@ -134,7 +139,20 @@ namespace CreazioneListe.Controllers
                     CodAcc = richiestaExcel.CodAcc
                 };
 
-                var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, tenant);
+                // Verifica se i dati sono già nella cache
+                var cacheDataKey = $"{cacheKey}_{richiestaExcel.NazCor}_{richiestaExcel.CodCor}";
+                if (!_memoryCache.TryGetValue(cacheDataKey, out DataTable data))
+                {
+                    // Se i dati non sono presenti nella cache, esegue la query al database
+                    data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, tenant);
+
+                    // Salva i dati nella cache per 10 minuti
+                    var cacheEntryOptions = new MemoryCacheEntryOptions()
+                        .SetSlidingExpiration(TimeSpan.FromMinutes(10));
+
+                    _memoryCache.Set(cacheDataKey, data, cacheEntryOptions);
+                }
+
                 richiestaExcel.TotRic = data.Rows.Count;
                 richiesteExcel.Add(richiestaExcel);
 
@@ -160,6 +178,7 @@ namespace CreazioneListe.Controllers
             ViewBag.Tenant = tenant;  // Salva tenant nel ViewBag per passarlo alla vista
             return View("~/Views/File/ListaFileEbi.cshtml", files);
         }
+
 
         // Metodo per filtrare e rielaborare le colonne del DataTable con le condizioni richieste
         private DataTable FiltraColonne(DataTable dataTable, RichiestaExcel richiesta)
