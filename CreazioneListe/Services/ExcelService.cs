@@ -1,12 +1,9 @@
 ﻿using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
-using Microsoft.Extensions.Logging;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System.Data;
 using System.Drawing;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace CreazioneListe.Services
 {
@@ -23,7 +20,7 @@ namespace CreazioneListe.Services
             _registroFileService = registroFileService;
         }
 
-        public async Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, FormData formData string tenant)
+        public async Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, FormData formData, string tenant)
         {
             var files = new List<FileInfo>();
             try

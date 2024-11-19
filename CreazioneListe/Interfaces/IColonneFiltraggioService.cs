@@ -5,6 +5,6 @@ namespace CreazioneListe.Interfaces
 {
     public interface IColonneFiltraggioService
     {
-        DataTable FiltraColonne(DataTable dataTable, RichiestaExcel richiesta);
+        DataTable FiltraColonne(DataTable dataTable, RichiestaExcel richiesta, string tenant);
     }
 }
