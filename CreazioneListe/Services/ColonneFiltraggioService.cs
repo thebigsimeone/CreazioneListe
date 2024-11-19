@@ -13,10 +13,11 @@ namespace CreazioneListe.Services
             _moduloService = moduloService;
         }
 
-        public DataTable FiltraColonne(DataTable dataTable, RichiestaExcel richiesta)
+        public DataTable FiltraColonne(DataTable dataTable, RichiestaExcel richiesta, string tenant)
         {
             var dataTableFiltrato = new DataTable();
 
+            // Aggiungi la colonna "Azienda" solo se richiesta da CodCor = "8033" e specifica il valore del tenant
             if (richiesta.CodCor == "8033")
             {
                 dataTableFiltrato.Columns.Add("Azienda", typeof(string));
@@ -43,9 +44,10 @@ namespace CreazioneListe.Services
             {
                 var newRow = dataTableFiltrato.NewRow();
 
+                // Imposta il valore "Azienda" basato sul tenant se CodCor = "8033"
                 if (richiesta.CodCor == "8033")
                 {
-                    newRow["Azienda"] = "EBI";
+                    newRow["Azienda"] = tenant == "EBI" ? "EBI" : "SSC";
                 }
 
                 // Verifica se le colonne esistono nel DataTable originale prima di accedervi
@@ -69,12 +71,6 @@ namespace CreazioneListe.Services
                 {
                     codiceFiscale = row["PBAPIV"].ToString();
                 }
-
-                // Se il codice fiscale ha lunghezza 11, aggiungi un apice all'inizio
-                /*if (codiceFiscale.Length == 11)
-                {
-                    codiceFiscale = "'" + codiceFiscale;
-                }*/
 
                 newRow["Codice Fiscale"] = string.IsNullOrEmpty(codiceFiscale) ? "N/A" : codiceFiscale;
 
@@ -160,12 +156,12 @@ namespace CreazioneListe.Services
 
                     if (dataTable.Columns.Contains("PBAOGG"))
                     {
-                        primoRigo += _moduloService.LeggiModuloTesto(row["PBAOGG"].ToString(), "003", "EBI");
+                        primoRigo += _moduloService.LeggiModuloTesto(row["PBAOGG"].ToString(), "003", tenant);
                     }
 
                     if (dataTable.Columns.Contains("IBACOG"))
                     {
-                        var erediHtml = _moduloService.LeggiEredi(row["IBACOG"].ToString(), primoRigo, "EBI");
+                        var erediHtml = _moduloService.LeggiEredi(row["IBACOG"].ToString(), primoRigo, tenant);
                         newRow["PrimoRigo"] = erediHtml;
                     }
                     else

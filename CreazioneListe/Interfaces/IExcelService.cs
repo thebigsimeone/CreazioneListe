@@ -5,6 +5,6 @@ namespace CreazioneListe.Interfaces
 {
     public interface IExcelService
     {
-        Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, string tenant);
+        Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, FormData formData, string tenant);
     }
 }

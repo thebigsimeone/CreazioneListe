@@ -23,7 +23,7 @@ namespace CreazioneListe.Services
             _registroFileService = registroFileService;
         }
 
-        public async Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, string tenant)
+        public async Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, FormData formData string tenant)
         {
             var files = new List<FileInfo>();
             try
@@ -51,6 +51,10 @@ namespace CreazioneListe.Services
                     _logger.LogInformation("Creazione della directory: {DirectoryPath}", directoryPath);
                     Directory.CreateDirectory(directoryPath);
                 }
+
+                // Ricava il percorso troncato (a partire dal drive locale)
+                var truncatedPath = directoryPath.Replace(@"\\10.10.20.5\f\", @"F:\")
+                                                 .Replace(@"\\10.10.12.5\f\", @"F:\");
 
                 for (int i = 0; i < dataTables.Count; i++)
                 {
@@ -112,18 +116,18 @@ namespace CreazioneListe.Services
                     _registroFileService.ScriviRegistroFile(
                         dataAMG: decimal.Parse(DateTime.Now.ToString("yyyyMMdd")),
                         oraHMS: DateTime.Now.ToString("HHmmss"),
-                        dataAff: decimal.Parse(richiesta.DataAff ?? "0"),
-                        daDataAff: decimal.Parse(richiesta.DaDataAff ?? "0"),
+                        dataAff: decimal.Parse(formData.DataAff ?? "0"),
+                        daDataAff: decimal.Parse(formData.DaDataAff ?? "0"),
                         nazCor: richiesta.NazCor ?? string.Empty,
                         codCor: richiesta.CodCor ?? string.Empty,
                         codAcc: richiesta.CodAcc ?? string.Empty,
                         codUrg: richiesta.CodUrg ?? string.Empty,
                         totRic: richiesta.TotRic,
-                        xPercorso: directoryPath,
+                        xPercorso: truncatedPath,  // Usare il percorso troncato
                         nomeFile: fileName,
                         formato: richiesta.Formato ?? string.Empty,
-                        operatore: "st8", // Operatore fisso, modificabile se necessario
-                        tenant: tenant // Passaggio del tenant per determinare il database
+                        operatore: "ST8", // Operatore fisso, modificabile se necessario
+                        tenant: tenant 
                     );
 
                     files.Add(new FileInfo(filePath));
