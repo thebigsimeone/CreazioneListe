@@ -14,11 +14,13 @@ namespace CreazioneListe.Services
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<ExcelService> _logger;
+        private readonly IRegistroFileService _registroFileService;
 
-        public ExcelService(IConfiguration configuration, ILogger<ExcelService> logger)
+        public ExcelService(IConfiguration configuration, ILogger<ExcelService> logger, IRegistroFileService registroFileService)
         {
             _configuration = configuration;
             _logger = logger;
+            _registroFileService = registroFileService;
         }
 
         public async Task<List<FileInfo>> CreateExcelFilesAsync(List<DataTable> dataTables, List<RichiestaExcel> richiesteExcel, string tenant)
@@ -27,7 +29,20 @@ namespace CreazioneListe.Services
             try
             {
                 // Definisci il percorso della directory in base al valore del tenant
-                var baseDirectory = Path.Combine("C:\\Users\\Utente\\Desktop\\EXCEL", tenant);
+                string baseDirectory;
+
+                switch (tenant.ToUpper())
+                {
+                    case "EBI":
+                        baseDirectory = @"\\10.10.20.5\f\Domains\AdcExe\Corrisp\FilesFornitori";
+                        break;
+                    case "SSC":
+                        baseDirectory = @"\\10.10.12.5\f\Domains\AdcExe\Corrisp\FilesFornitori";
+                        break;
+                    default:
+                        throw new ArgumentException($"Tenant non riconosciuto: {tenant}");
+                }
+
                 var directoryPath = Path.Combine(baseDirectory, DateTime.Now.ToString("yyyyMMdd"));
 
                 // Crea la directory se non esiste
@@ -92,6 +107,24 @@ namespace CreazioneListe.Services
                         await package.SaveAsAsync(new FileInfo(filePath));
                         _logger.LogInformation("File Excel salvato con successo: {FilePath}", filePath);
                     }
+
+                    // Chiamata al servizio RegistroFileService per scrivere nel registro
+                    _registroFileService.ScriviRegistroFile(
+                        dataAMG: decimal.Parse(DateTime.Now.ToString("yyyyMMdd")),
+                        oraHMS: DateTime.Now.ToString("HHmmss"),
+                        dataAff: decimal.Parse(richiesta.DataAff ?? "0"),
+                        daDataAff: decimal.Parse(richiesta.DaDataAff ?? "0"),
+                        nazCor: richiesta.NazCor ?? string.Empty,
+                        codCor: richiesta.CodCor ?? string.Empty,
+                        codAcc: richiesta.CodAcc ?? string.Empty,
+                        codUrg: richiesta.CodUrg ?? string.Empty,
+                        totRic: richiesta.TotRic,
+                        xPercorso: directoryPath,
+                        nomeFile: fileName,
+                        formato: richiesta.Formato ?? string.Empty,
+                        operatore: "st8", // Operatore fisso, modificabile se necessario
+                        tenant: tenant // Passaggio del tenant per determinare il database
+                    );
 
                     files.Add(new FileInfo(filePath));
                 }

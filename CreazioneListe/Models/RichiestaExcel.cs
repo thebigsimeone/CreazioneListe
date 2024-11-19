@@ -8,5 +8,8 @@
         public string? CodUrg { get; set; }
         public string? Formato { get; set; }
         public int TotRic { get; set; }
+
+        public string? DaDataAff { get; set; }
+        public string? DataAff { get; set; }
     }
 }
