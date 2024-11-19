@@ -127,7 +127,7 @@ namespace CreazioneListe.Services
                         nomeFile: fileName,
                         formato: richiesta.Formato ?? string.Empty,
                         operatore: "ST8", // Operatore fisso, modificabile se necessario
-                        tenant: tenant 
+                        tenant: tenant
                     );
 
                     files.Add(new FileInfo(filePath));
