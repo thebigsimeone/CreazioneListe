@@ -19,6 +19,7 @@ builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<IModuloService, ModuloService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IColonneFiltraggioService, ColonneFiltraggioService>();
+builder.Services.AddScoped<IRegistroFileService, RegistroFileService>(); // Registrazione del servizio mancante
 
 builder.Services.AddMemoryCache();
 
@@ -63,7 +64,6 @@ app.Use(async (context, next) =>
         throw;
     }
 });
-
 
 // Forza l'utilizzo di HTTPS per tutte le richieste
 app.UseHttpsRedirection();

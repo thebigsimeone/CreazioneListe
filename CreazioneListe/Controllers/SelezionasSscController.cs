@@ -39,13 +39,13 @@ namespace CreazioneListe.Controllers
         {
             try
             {
-                _logger.LogInformation("Accedendo alla pagina Index del controller SelezionaEbi.");
+                _logger.LogInformation("Accedendo alla pagina Index del controller SelezionaSSC.");
                 var formData = new FormData();
                 return View(formData);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante l'accesso alla pagina Index del controller SelezionaEbi.");
+                _logger.LogError(ex, "Errore durante l'accesso alla pagina Index del controller SelezionaSSC.");
                 return StatusCode(500, "Errore durante l'accesso alla pagina. Si prega di riprovare più tardi.");
             }
         }
@@ -55,32 +55,32 @@ namespace CreazioneListe.Controllers
         {
             try
             {
-                _logger.LogInformation("Dati inviati per la selezione EBI.");
-                return RedirectToAction("SelezionaEbi", "SelezionaEbi", formData);
+                _logger.LogInformation("Dati inviati per la selezione SSC.");
+                return RedirectToAction("SelezionaSsc", "SelezionaSsc", formData);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante il redirect a SelezionaEbi.");
+                _logger.LogError(ex, "Errore durante il redirect a SelezionaSSC.");
                 return StatusCode(500, "Errore durante il redirect. Si prega di riprovare più tardi.");
             }
         }
 
-        public async Task<IActionResult> SelezionaEbi(FormData formData)
+        public async Task<IActionResult> SelezionaSSC(FormData formData)
         {
             try
             {
-                _logger.LogInformation("Esecuzione della selezione EBI per i dati forniti.");
-                var data = await _databaseService.GetSelectAsync(formData, "EBI");
+                _logger.LogInformation("Esecuzione della selezione SSC per i dati forniti.");
+                var data = await _databaseService.GetSelectAsync(formData, "SSC");
                 return View(data);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante la selezione dei dati EBI.");
+                _logger.LogError(ex, "Errore durante la selezione dei dati SSC.");
                 return StatusCode(500, "Errore durante la selezione dei dati. Si prega di riprovare più tardi.");
             }
         }
 
-        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string tenant = "EBI")
+        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string tenant = "SSC")
         {
             if (selectedRows == null || selectedRows.Length == 0)
             {
