@@ -1,0 +1,66 @@
+﻿@model List<CreazioneListe.Models.RegistroFile>
+@{
+    ViewBag.Title = "Registro File - Lista File";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h2>Registro File - Data @ViewBag.DataAff</h2>
+        </div>
+    </div>
+
+    <form asp-action="RegistroFile" method="get" class="row mt-3">
+        <div class="col-md-3">
+            <input type="hidden" name="tenant" value="@ViewBag.Tenant" />
+            <label for="dataAff" class="form-label">Data (AAAAMMGG)</label>
+            <input type="text" name="dataAff" id="dataAff" value="@ViewBag.DataAff" class="form-control" />
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button type="submit" class="btn btn-outline-primary">Cerca</button>
+        </div>
+    </form>
+
+    <div class="row mt-4">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="col-md-12 text-center">
+                <p class="text-muted">Nessun file trovato per i criteri specificati.</p>
+            </div>
+        }
+        else
+        {
+            <div class="col-md-12">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Data Registro</th>
+                            <th>Ora</th>
+                            <th>Nazione Corriere</th>
+                            <th>Codice Corriere</th>
+                            <th>Path</th>
+                            <th>Nome File</th>
+                            <th>Scarica</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var file in Model)
+                        {
+                            <tr>
+                                <td>@file.ID_DataReg</td>
+                                <td>@file.ID_Ora</td>
+                                <td>@file.ID_NazCor</td>
+                                <td>@file.ID_CodCor</td>
+                                <td>@file.ID_Path</td>
+                                <td>@file.ID_File</td>
+                                <td>
+                                    <a class="btn btn-outline-info" asp-action="ScaricaFile" asp-route-tenant="@ViewBag.Tenant" asp-route-dataAff="@file.ID_DataReg" asp-route-fileName="@file.ID_File">Scarica</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

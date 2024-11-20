@@ -25,7 +25,6 @@ namespace CreazioneListe.Services
             var files = new List<FileInfo>();
             try
             {
-                // Definisci il percorso della directory in base al valore del tenant
                 string baseDirectory;
 
                 switch (tenant.ToUpper())
@@ -56,7 +55,7 @@ namespace CreazioneListe.Services
                 for (int i = 0; i < dataTables.Count; i++)
                 {
                     var richiesta = richiesteExcel[i];
-                    var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{richiesta.CodUrg}_{DateTime.Now:yyyyMMdd_HHmmss}_{richiesta.TotRic}";
+                    var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{richiesta.CodUrg}_{DateTime.Now:yyyyMMdd}_{richiesta.TotRic}";
                     var fileName = baseFileName + ".xlsx";
                     var filePath = Path.Combine(directoryPath, fileName);
                     int fileIndex = 1;

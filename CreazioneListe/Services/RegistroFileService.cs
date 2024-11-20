@@ -1,6 +1,7 @@
 ﻿namespace CreazioneListe.Services
 {
     using CreazioneListe.Interfaces;
+    using CreazioneListe.Models;
     using Microsoft.Data.SqlClient;
     using System.Data;
 
@@ -17,9 +18,7 @@
 
         public void ScriviRegistroFile(decimal dataAMG, string oraHMS, decimal dataAff, decimal daDataAff, string nazCor, string codCor, string codAcc, string codUrg, int totRic, string xPercorso, string nomeFile, string formato, string operatore, string tenant)
         {
-            string connectionString = tenant == "EBI"
-                ? _configuration.GetConnectionString("DefaultConnection_EBI")
-                : _configuration.GetConnectionString("DefaultConnection_SSC");
+            string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
 
             try
             {
@@ -75,5 +74,55 @@
                 throw;
             }
         }
+        public async Task<List<RegistroFile>> GetRegistroFilesByDataAsync(string dataAff, string tenant)
+        {
+            var filesList = new List<RegistroFile>();
+            string connectionString = _configuration.GetConnectionString(tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC");
+
+            try
+            {
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    string query = @"
+                            SELECT * 
+                            FROM RegistroFile 
+                            LEFT JOIN KBACORF0 ON KBANAZ = ID_NazCor AND KBAPRG = ID_CodCor 
+                            WHERE ID_DataReg = @DataAff 
+                            ORDER BY ID_CodCor, ID_Ora";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@DataAff", dataAff);
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var file = new RegistroFile
+                                {
+                                    ID_DataReg = reader["ID_DataReg"]?.ToString() ?? string.Empty,
+                                    ID_Ora = reader["ID_Ora"]?.ToString() ?? string.Empty,
+                                    ID_NazCor = reader["ID_NazCor"]?.ToString() ?? string.Empty,
+                                    ID_CodCor = reader["ID_CodCor"]?.ToString() ?? string.Empty,
+                                    ID_Path = reader["ID_Path"]?.ToString() ?? string.Empty,
+                                    ID_File = reader["ID_File"]?.ToString() ?? string.Empty,
+                                };
+                                filesList.Add(file);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante l'ottenimento dei dati del RegistroFile.");
+                throw;
+            }
+
+            return filesList;
+        }
+
     }
 }

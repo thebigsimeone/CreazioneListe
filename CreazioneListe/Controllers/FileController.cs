@@ -1,6 +1,5 @@
 ﻿using CreazioneListe.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
 
 namespace CreazioneListe.Controllers
 {
