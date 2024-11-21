@@ -1,7 +1,15 @@
 using CreazioneListe.Interfaces;
 using CreazioneListe.Services;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Configura il logging per lo sviluppo locale
 builder.Logging.ClearProviders();
@@ -19,7 +27,7 @@ builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<IModuloService, ModuloService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IColonneFiltraggioService, ColonneFiltraggioService>();
-builder.Services.AddScoped<IRegistroFileService, RegistroFileService>(); // Registrazione del servizio mancante
+builder.Services.AddScoped<IRegistroFileService, RegistroFileService>();
 
 builder.Services.AddMemoryCache();
 
@@ -28,22 +36,7 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler(errorApp =>
-    {
-        errorApp.Run(async context =>
-        {
-            var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
-            var exception = exceptionHandlerPathFeature?.Error;
-
-            if (exception != null)
-            {
-                var logger = app.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogError(exception, "Si è verificato un errore non gestito.");
-            }
-
-            context.Response.Redirect("/Home/Error");
-        });
-    });
+    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 else
@@ -51,33 +44,28 @@ else
     app.UseDeveloperExceptionPage();
 }
 
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next.Invoke();
-    }
-    catch (Exception ex)
-    {
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Errore durante la gestione della richiesta HTTP per {RequestPath}", context.Request.Path);
-        throw;
-    }
-});
-
-// Forza l'utilizzo di HTTPS per tutte le richieste
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-// Abilita l'autenticazione e l'autorizzazione (aggiungere configurazioni se necessario)
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Configura il percorso di default del routing
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-app.Run();
+try
+{
+    Log.Information("Avvio dell'applicazione web");
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Applicazione terminata a causa di un errore imprevisto");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

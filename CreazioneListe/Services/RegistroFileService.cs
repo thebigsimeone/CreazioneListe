@@ -27,7 +27,6 @@ namespace CreazioneListe.Services
                     connection.Open();
                     _logger.LogInformation($"Connessione al database aperta con successo per ScriviRegistroFile per tenant {tenant}.");
 
-                    // Query per selezionare il record con ID_Reg = 999999999
                     string selectQuery = "SELECT * FROM RegistroFile WHERE ID_Reg = 999999999";
 
                     using (var command = new SqlCommand(selectQuery, connection))
@@ -37,23 +36,22 @@ namespace CreazioneListe.Services
                         var dataTable = new DataTable();
                         adapter.Fill(dataTable);
 
-                        // Se non esiste un record, ne aggiungiamo uno nuovo
                         if (dataTable.Rows.Count == 0)
                         {
                             DataRow newRow = dataTable.NewRow();
                             newRow["ID_DataReg"] = dataAMG;
-                            newRow["ID_Ora"] = oraHMS;
+                            newRow["ID_Ora"] = oraHMS ?? string.Empty;
                             newRow["ID_Daf"] = dataAff;
                             newRow["ID_Daf1"] = daDataAff;
-                            newRow["ID_Operatore"] = operatore;
-                            newRow["ID_NazCor"] = nazCor;
+                            newRow["ID_Operatore"] = operatore ?? string.Empty;
+                            newRow["ID_NazCor"] = nazCor ?? string.Empty;
                             newRow["ID_CodCor"] = codCor;
-                            newRow["ID_Acc"] = codAcc;
-                            newRow["ID_Urg"] = codUrg;
+                            newRow["ID_Acc"] = codAcc ?? string.Empty;
+                            newRow["ID_Urg"] = codUrg ?? string.Empty;
                             newRow["ID_NumRic"] = totRic;
-                            newRow["IF_Formato"] = formato;
-                            newRow["ID_Path"] = xPercorso;
-                            newRow["ID_File"] = nomeFile;
+                            newRow["IF_Formato"] = formato ?? string.Empty;
+                            newRow["ID_Path"] = xPercorso ?? string.Empty;
+                            newRow["ID_File"] = nomeFile ?? string.Empty;
 
                             dataTable.Rows.Add(newRow);
                             adapter.Update(dataTable);

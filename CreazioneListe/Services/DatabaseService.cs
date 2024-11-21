@@ -22,13 +22,11 @@ namespace CreazioneListe.Services
         public async Task<DataTable> GetSelectAsync(FormData formData, string tenant)
         {
             var dataTable = new DataTable();
-            string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
+            string connectionString = _configuration.GetConnectionString(tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC");
 
             try
             {
-                _logger.LogInformation("Avvio della connessione al database per tenant {Tenant}.", tenant);
-
-                using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
+                using (var connection = new SqlConnection(connectionString))
                 {
                     var query = @"SELECT PBSNCO, PBSCCO, KBARA1, PBSACC, PBSURG, PBSVALORE, TBIDEC, Count(*) AS TotAcc 
                                   FROM PBSACOF0
@@ -41,36 +39,25 @@ namespace CreazioneListe.Services
                                   GROUP BY PBSNCO, PBSCCO, KBARA1, PBSACC, PBSURG, PBSVALORE, TBIDEC
                                   ORDER BY PBSNCO, PBSCCO, PBSACC, PBSVALORE";
 
-                    if (!string.IsNullOrEmpty(formData.CodAcc))
-                    {
-                        query += " AND PBSACC = @CodAcc";
-                    }
-                    if (!string.IsNullOrEmpty(formData.NumLotto))
-                    {
-                        query += " AND PBALOTTO = @NumLotto";
-                    }
-
                     using (var command = new SqlCommand(query, connection))
                     {
-                        var daDataAff = DateTime.ParseExact(formData.DaDataAff, "yyyyMMdd", null);
-                        var dataAff = DateTime.ParseExact(formData.DataAff, "yyyyMMdd", null);
+                        var daDataAff = DateTime.TryParseExact(formData?.DaDataAff, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out DateTime daDataAffParsed) ? daDataAffParsed : DateTime.MinValue;
+                        var dataAff = DateTime.TryParseExact(formData?.DataAff, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out DateTime dataAffParsed) ? dataAffParsed : DateTime.MaxValue;
 
-                        command.Parameters.AddWithValue("@DaDataAff", daDataAff.ToString("yyyyMMdd"));
-                        command.Parameters.AddWithValue("@DataAff", dataAff.ToString("yyyyMMdd"));
+                        command.Parameters.AddWithValue("@DaDataAff", daDataAffParsed.ToString("yyyyMMdd"));
+                        command.Parameters.AddWithValue("@DataAff", dataAffParsed.ToString("yyyyMMdd"));
 
-                        if (!string.IsNullOrEmpty(formData.CodAcc))
+                        if (!string.IsNullOrEmpty(formData?.CodAcc))
                         {
                             command.Parameters.AddWithValue("@CodAcc", formData.CodAcc);
                         }
-                        if (!string.IsNullOrEmpty(formData.NumLotto))
+                        if (!string.IsNullOrEmpty(formData?.NumLotto))
                         {
                             command.Parameters.AddWithValue("@NumLotto", Convert.ToInt32(formData.NumLotto));
                         }
 
-                        _logger.LogInformation("Esecuzione della query per tenant {Tenant}: {Query}", tenant, query);
                         var adapter = new SqlDataAdapter(command);
                         await Task.Run(() => adapter.Fill(dataTable));
-                        _logger.LogInformation("Query eseguita correttamente. Numero di righe restituite: {RowCount}", dataTable.Rows.Count);
                     }
                 }
             }
@@ -87,6 +74,7 @@ namespace CreazioneListe.Services
 
             return dataTable;
         }
+
 
         public async Task<DataTable> GetSelectedAsync(RichiestaExcel richiestaExcel, FormData formData, string tenant)
         {
