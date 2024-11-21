@@ -25,6 +25,7 @@ namespace CreazioneListe.Services
             var files = new List<FileInfo>();
             try
             {
+                // Definisci il percorso della directory base
                 string baseDirectory;
 
                 switch (tenant.ToUpper())
@@ -55,7 +56,7 @@ namespace CreazioneListe.Services
                 for (int i = 0; i < dataTables.Count; i++)
                 {
                     var richiesta = richiesteExcel[i];
-                    var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{richiesta.CodUrg}_{DateTime.Now:yyyyMMdd}_{richiesta.TotRic}";
+                    var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{DateTime.Now:yyyyMMdd}_{richiesta.TotRic}";
                     var fileName = baseFileName + ".xlsx";
                     var filePath = Path.Combine(directoryPath, fileName);
                     int fileIndex = 1;
@@ -108,21 +109,24 @@ namespace CreazioneListe.Services
                         _logger.LogInformation("File Excel salvato con successo: {FilePath}", filePath);
                     }
 
-                    // Chiamata al servizio RegistroFileService per scrivere nel registro
+                    // Scrivi registro file
+                    var truncatedFilePath = truncatedPath.Length > 50 ? truncatedPath.Substring(0, 50) : truncatedPath;
+                    var truncatedFileName = fileName.Length > 80 ? fileName.Substring(0, 80) : fileName;
+
                     _registroFileService.ScriviRegistroFile(
                         dataAMG: decimal.Parse(DateTime.Now.ToString("yyyyMMdd")),
                         oraHMS: DateTime.Now.ToString("HHmmss"),
                         dataAff: decimal.Parse(formData.DataAff ?? "0"),
                         daDataAff: decimal.Parse(formData.DaDataAff ?? "0"),
                         nazCor: richiesta.NazCor ?? string.Empty,
-                        codCor: richiesta.CodCor ?? string.Empty,
+                        codCor: decimal.Parse(richiesta.CodCor ?? "0"),
                         codAcc: richiesta.CodAcc ?? string.Empty,
                         codUrg: richiesta.CodUrg ?? string.Empty,
                         totRic: richiesta.TotRic,
-                        xPercorso: truncatedPath,  // Usare il percorso troncato
-                        nomeFile: fileName,
+                        xPercorso: truncatedFilePath,
+                        nomeFile: truncatedFileName,
                         formato: richiesta.Formato ?? string.Empty,
-                        operatore: "ST8", // Operatore fisso, modificabile se necessario
+                        operatore: "ST8",
                         tenant: tenant
                     );
 
@@ -133,7 +137,7 @@ namespace CreazioneListe.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante la creazione dei file Excel per tenant {Tenant}.", tenant);
+                _logger.LogError(ex, "Errore durante la creazione dei file Excel.");
                 throw;
             }
 

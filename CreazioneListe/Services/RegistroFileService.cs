@@ -1,10 +1,10 @@
-﻿namespace CreazioneListe.Services
-{
-    using CreazioneListe.Interfaces;
-    using CreazioneListe.Models;
-    using Microsoft.Data.SqlClient;
-    using System.Data;
+﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Models;
+using Microsoft.Data.SqlClient;
+using System.Data;
 
+namespace CreazioneListe.Services
+{
     public class RegistroFileService : IRegistroFileService
     {
         private readonly IConfiguration _configuration;
@@ -16,9 +16,9 @@
             _logger = logger;
         }
 
-        public void ScriviRegistroFile(decimal dataAMG, string oraHMS, decimal dataAff, decimal daDataAff, string nazCor, string codCor, string codAcc, string codUrg, int totRic, string xPercorso, string nomeFile, string formato, string operatore, string tenant)
+        public void ScriviRegistroFile(decimal dataAMG, string oraHMS, decimal dataAff, decimal daDataAff, string nazCor, decimal codCor, string codAcc, string codUrg, int totRic, string xPercorso, string nomeFile, string formato, string operatore, string tenant)
         {
-            string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
+            string connectionString = _configuration.GetConnectionString(tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC");
 
             try
             {
@@ -74,6 +74,7 @@
                 throw;
             }
         }
+
         public async Task<List<RegistroFile>> GetRegistroFilesByDataAsync(string dataAff, string tenant)
         {
             var filesList = new List<RegistroFile>();
@@ -123,6 +124,5 @@
 
             return filesList;
         }
-
     }
 }
