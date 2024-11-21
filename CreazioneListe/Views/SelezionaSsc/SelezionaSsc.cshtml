@@ -25,9 +25,9 @@
             <button type="button" class="btn btn-outline-secondary" onclick="selezionaTutte()">Seleziona Tutto</button>
         </div>
         <div class="table-responsive">
-            <table class="table table-bordered table-hover">
+            <table class="table table-bordered table table-hover">
                 <thead class="thead-dark">
-                    <tr class="table-primary">
+                    <tr class="table-success">
                         <th>Seleziona</th>
                         @foreach (System.Data.DataColumn column in Model.Columns)
                         {
@@ -44,7 +44,7 @@
                         <tr>
                             <td class="text-center">
                                 <input type="checkbox" id="rowCheck_@i" name="selectedRows" class="btn-check row-checkbox" value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"],@i" autocomplete="off">
-                                <label class="btn btn-outline-primary btn-check-outlined" for="rowCheck_@i">Seleziona</label>
+                                <label class="btn btn-outline-success btn-check-outlined" for="rowCheck_@i">Seleziona</label>
                             </td>
                             @foreach (var item in row.ItemArray)
                             {
@@ -80,7 +80,7 @@
         </div>
 
         <div class="form-group text-center mt-4">
-            <button type="submit" class="btn btn-outline-primary">Crea File Selezionati</button>
+            <button type="submit" class="btn btn-outline-success">Crea File Selezionati</button>
         </div>
     </form>
 </div>
