@@ -91,58 +91,82 @@ namespace CreazioneListe.Controllers
             {
                 _logger.LogInformation("Avvio della creazione dei file Excel per il tenant {Tenant}.", tenant);
 
-                var dataTables = new List<DataTable>();
-                var richiesteExcel = new List<RichiestaExcel>();
-                FormData formData = null; // Dichiarazione della variabile formData al di fuori del ciclo
+                // Crea una chiave per il cache
+                var cacheKey = $"CreaFile_{tenant}_{string.Join("_", selectedRows)}";
 
-                foreach (var selectedRow in selectedRows)
+                ExcelFileCacheData cacheData;
+
+                // Controlla se i dati sono già in cache
+                if (_memoryCache.TryGetValue(cacheKey, out cacheData))
                 {
-                    var datiSelezionati = selectedRow.Split(',');
-                    var richiestaExcel = new RichiestaExcel
+                    _logger.LogInformation("Ripristinando dati dalla cache per il tenant {Tenant}.", tenant);
+                }
+                else
+                {
+                    var dataTables = new List<DataTable>();
+                    var richiesteExcel = new List<RichiestaExcel>();
+                    FormData formData = null;
+
+                    foreach (var selectedRow in selectedRows)
                     {
-                        NazCor = datiSelezionati.ElementAtOrDefault(0) ?? string.Empty,
-                        CodCor = datiSelezionati.ElementAtOrDefault(1) ?? "0",
-                        CodAcc = datiSelezionati.ElementAtOrDefault(2) ?? string.Empty,
-                        CodUrg = datiSelezionati.ElementAtOrDefault(3) ?? string.Empty,
-                        Formato = formato.ElementAtOrDefault(richiesteExcel.Count) ?? string.Empty
+                        var datiSelezionati = selectedRow.Split(',');
+                        var richiestaExcel = new RichiestaExcel
+                        {
+                            NazCor = datiSelezionati.ElementAtOrDefault(0) ?? string.Empty,
+                            CodCor = datiSelezionati.ElementAtOrDefault(1) ?? "0",
+                            CodAcc = datiSelezionati.ElementAtOrDefault(2) ?? string.Empty,
+                            CodUrg = datiSelezionati.ElementAtOrDefault(3) ?? string.Empty,
+                            Formato = formato.ElementAtOrDefault(richiesteExcel.Count) ?? string.Empty
+                        };
+
+                        formData = new FormData
+                        {
+                            DaDataAff = DateTime.Now.AddDays(-7).ToString("yyyyMMdd"),
+                            DataAff = DateTime.Now.ToString("yyyyMMdd"),
+                            NazCor = richiestaExcel.NazCor,
+                            CodCor = richiestaExcel.CodCor,
+                            CodAcc = richiestaExcel.CodAcc
+                        };
+
+                        var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, tenant);
+                        richiestaExcel.TotRic = data.Rows.Count;
+                        richiesteExcel.Add(richiestaExcel);
+
+                        var dataFiltrata = _colonneFiltraggioService.FiltraColonne(data, richiestaExcel, tenant);
+                        dataTables.Add(dataFiltrata);
+                        /*foreach (DataRow row in data.Rows)
+                        {
+                            _moduloService.AggiornaFileCorrispondenti(
+                                int.Parse(row["PBAANP"].ToString()),
+                                int.Parse(row["PBANUP"].ToString()),
+                                richiestaExcel.CodAcc,
+                                richiestaExcel.CodUrg,
+                                richiestaExcel.NazCor,
+                                richiestaExcel.CodCor,
+                                "",
+                                tenant
+                            );
+                        }*/
+                    }
+
+                    // Crea l'oggetto da mettere in cache
+                    cacheData = new ExcelFileCacheData
+                    {
+                        DataTables = dataTables,
+                        RichiesteExcel = richiesteExcel,
+                        FormData = formData
                     };
 
-                    // Assegna un nuovo oggetto a formData per ogni riga selezionata
-                    formData = new FormData
-                    {
-                        DaDataAff = DateTime.Now.AddDays(-7).ToString("yyyyMMdd"),
-                        DataAff = DateTime.Now.ToString("yyyyMMdd"),
-                        NazCor = richiestaExcel.NazCor,
-                        CodCor = richiestaExcel.CodCor,
-                        CodAcc = richiestaExcel.CodAcc
-                    };
-
-                    // Ottieni i dati dal database
-                    var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, tenant);
-                    richiestaExcel.TotRic = data.Rows.Count;
-                    richiesteExcel.Add(richiestaExcel);
-
-                    // Filtra i dati utilizzando il servizio appropriato
-                    var dataFiltrata = _colonneFiltraggioService.FiltraColonne(data, richiestaExcel, tenant);
-                    dataTables.Add(dataFiltrata);
-                    /*foreach (DataRow row in data.Rows)
-                    {
-                        _moduloService.AggiornaFileCorrispondenti(
-                            int.Parse(row["PBAANP"].ToString()),
-                            int.Parse(row["PBANUP"].ToString()),
-                            richiestaExcel.CodAcc,
-                            richiestaExcel.CodUrg,
-                            richiestaExcel.NazCor,
-                            richiestaExcel.CodCor,
-                            "",
-                            tenant
-                        );
-                    }*/
+                    // Salva i dati in cache con un timeout di 30 minuti
+                    _memoryCache.Set(cacheKey, cacheData, TimeSpan.FromMinutes(30));
                 }
 
-                // Utilizza formData (che ora è stato inizializzato con l'ultima riga processata)
-                var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, formData, tenant);
+                // Utilizza i dati dalla cache
+                var files = await _excelService.CreateExcelFilesAsync(cacheData.DataTables, cacheData.RichiesteExcel, cacheData.FormData, tenant);
                 ViewBag.Tenant = tenant;
+
+                // Se la creazione dei file è completata con successo, rimuovi la cache
+                _memoryCache.Remove(cacheKey);
 
                 _logger.LogInformation("Creazione dei file Excel completata con successo per il tenant {Tenant}.", tenant);
                 return View("~/Views/File/ListaFileEbi.cshtml", files);
