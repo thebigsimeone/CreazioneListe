@@ -97,7 +97,8 @@ namespace CreazioneListe.Services
                         {
                             for (int col = 0; col < dataTable.Columns.Count; col++)
                             {
-                                worksheet.Cells[row + 2, col + 1].Value = dataTable.Rows[row][col];
+                                var cellValue = dataTable.Rows[row][col].ToString()?.Trim(); // Rimuove spazi superflui
+                                worksheet.Cells[row + 2, col + 1].Value = cellValue;
                             }
                         }
 
