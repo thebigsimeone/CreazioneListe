@@ -20,7 +20,7 @@ namespace CreazioneListe.Services
             // Aggiungi la colonna "Azienda" solo se richiesta da CodCor = "8033" e specifica il valore del tenant
             if (richiesta.CodCor == "8033")
             {
-                dataTableFiltrato.Columns.Add("Azienda", typeof(string));
+                dataTableFiltrato.Columns.Add("Mandante", typeof(string));
             }
 
             // Aggiungi le colonne principali desiderate
@@ -47,7 +47,7 @@ namespace CreazioneListe.Services
                 // Imposta il valore "Azienda" basato sul tenant se CodCor = "8033"
                 if (richiesta.CodCor == "8033")
                 {
-                    newRow["Azienda"] = tenant == "EBI" ? "EBI" : "SSC";
+                    newRow["Mandante"] = tenant == "EBI" ? "EBI" : "SSC";
                 }
 
                 // Verifica se le colonne esistono nel DataTable originale prima di accedervi
@@ -62,16 +62,30 @@ namespace CreazioneListe.Services
 
                 string codiceFiscale = string.Empty;
 
-                // Se PBACFI è vuoto, utilizza PBAPIV
+                // Aggiungi la colonna "Partita Iva" se CodAcc è "VSA"
+                if (richiesta.CodAcc == "VSA")
+                {
+                    if (!dataTableFiltrato.Columns.Contains("Partita iva"))
+                    {
+                        dataTableFiltrato.Columns.Add("Partita iva", typeof(string));
+                    }
+                    if (dataTable.Columns.Contains("PBAPIV"))
+                    {
+                        newRow["Partita iva"] = row["PBAPIV"]?.ToString().Trim(); // Rimuove spazi superflui
+                    }
+                }
+
+                // Se PBACFI è vuoto, utilizza PBAPIV come Codice Fiscale
                 if (dataTable.Columns.Contains("PBACFI") && !string.IsNullOrWhiteSpace(row["PBACFI"].ToString()))
                 {
-                    codiceFiscale = row["PBACFI"].ToString();
+                    codiceFiscale = row["PBACFI"].ToString().Trim();
                 }
                 else if (dataTable.Columns.Contains("PBAPIV") && !string.IsNullOrWhiteSpace(row["PBAPIV"].ToString()))
                 {
-                    codiceFiscale = row["PBAPIV"].ToString();
+                    codiceFiscale = row["PBAPIV"].ToString().Trim();
                 }
 
+                // Assegna il valore al Codice Fiscale
                 newRow["Codice Fiscale"] = string.IsNullOrEmpty(codiceFiscale) ? "N/A" : codiceFiscale;
 
                 // Popola la colonna CLIENTE solo se richiesto
