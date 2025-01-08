@@ -1,9 +1,8 @@
 ﻿using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
-using CreazioneListe.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CreazioneListeEbi.Controllers
+namespace CreazioneListe.Controllers
 {
     public class RegistroFileController : Controller
     {
