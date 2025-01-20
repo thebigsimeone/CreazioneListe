@@ -25,20 +25,10 @@ namespace CreazioneListe.Services
             var files = new List<FileInfo>();
             try
             {
-                // Definisci il percorso della directory base
-                string baseDirectory;
-
-                switch (tenant.ToUpper())
-                {
-                    case "EBI":
-                        baseDirectory = @"\\10.10.20.5\f\Domains\AdcExe\Corrisp\FilesFornitori";
-                        break;
-                    case "SSC":
-                        baseDirectory = @"\\10.10.12.5\f\Domains\AdcExe\Corrisp\FilesFornitori";
-                        break;
-                    default:
-                        throw new ArgumentException($"Tenant non riconosciuto: {tenant}");
-                }
+                // Recupera il percorso base dal file di configurazione
+                var baseDirectory = _configuration[$"Paths:{tenant.ToUpper()}"];
+                if (string.IsNullOrEmpty(baseDirectory))
+                    throw new ArgumentException($"Percorso non configurato per il tenant: {tenant}");
 
                 var directoryPath = Path.Combine(baseDirectory, DateTime.Now.ToString("yyyyMMdd"));
 
@@ -49,7 +39,7 @@ namespace CreazioneListe.Services
                     Directory.CreateDirectory(directoryPath);
                 }
 
-                // Ricava il percorso troncato (a partire dal drive locale)
+                // Ricava il percorso troncato per uso nel registro
                 var truncatedPath = directoryPath.Replace(@"\\10.10.20.5\f\", @"F:\")
                                                  .Replace(@"\\10.10.12.5\f\", @"F:\");
 
@@ -57,11 +47,11 @@ namespace CreazioneListe.Services
                 {
                     var richiesta = richiesteExcel[i];
                     var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{DateTime.Now:yyyyMMdd-HHmm}_{richiesta.TotRic}";
-                    var fileName = baseFileName + ".xlsx";
+                    var fileName = $"{baseFileName}.xlsx";
                     var filePath = Path.Combine(directoryPath, fileName);
                     int fileIndex = 1;
 
-                    // Aggiungi un suffisso al nome del file se esiste già
+                    // Evita sovrascritture aggiungendo un suffisso al nome del file
                     while (File.Exists(filePath))
                     {
                         fileName = $"{baseFileName}_{fileIndex}.xlsx";
@@ -77,7 +67,7 @@ namespace CreazioneListe.Services
                         var worksheet = package.Workbook.Worksheets.Add("Dati");
                         var dataTable = dataTables[i];
 
-                        // Aggiungi intestazioni con personalizzazione colore e stile
+                        // Aggiungi intestazioni
                         for (int col = 0; col < dataTable.Columns.Count; col++)
                         {
                             var cell = worksheet.Cells[1, col + 1];
@@ -85,24 +75,20 @@ namespace CreazioneListe.Services
                             cell.Style.Font.Bold = true;
                             cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
                             cell.Style.Fill.BackgroundColor.SetColor(Color.LightBlue);
-                            cell.Style.Font.Color.SetColor(Color.Black);
                             cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-
-                            // Imposta il formato delle celle come Testo
-                            worksheet.Column(col + 1).Style.Numberformat.Format = "@";
+                            worksheet.Column(col + 1).Style.Numberformat.Format = "@"; // Formato testo
                         }
 
-                        // Aggiungi i dati al file Excel
+                        // Aggiungi i dati
                         for (int row = 0; row < dataTable.Rows.Count; row++)
                         {
                             for (int col = 0; col < dataTable.Columns.Count; col++)
                             {
-                                var cellValue = dataTable.Rows[row][col].ToString()?.Trim(); // Rimuove spazi superflui
-                                worksheet.Cells[row + 2, col + 1].Value = cellValue;
+                                worksheet.Cells[row + 2, col + 1].Value = dataTable.Rows[row][col]?.ToString()?.Trim();
                             }
                         }
 
-                        // Adatta automaticamente la larghezza delle colonne in base ai dati
+                        // Adatta automaticamente la larghezza delle colonne
                         worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
 
                         // Salva il file Excel
@@ -110,7 +96,7 @@ namespace CreazioneListe.Services
                         _logger.LogInformation("File Excel salvato con successo: {FilePath}", filePath);
                     }
 
-                    // Scrivi registro file
+                    // Scrivi nel registro
                     var truncatedFilePath = truncatedPath.Length > 50 ? truncatedPath.Substring(0, 50) : truncatedPath;
                     var truncatedFileName = fileName.Length > 80 ? fileName.Substring(0, 80) : fileName;
 
@@ -142,7 +128,7 @@ namespace CreazioneListe.Services
                 throw;
             }
 
-            return await Task.FromResult(files);
+            return files;
         }
     }
 }
