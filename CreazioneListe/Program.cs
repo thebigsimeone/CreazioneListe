@@ -1,6 +1,7 @@
 using CreazioneListe.Interfaces;
 using CreazioneListe.Services;
 using Serilog;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,14 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 
 // Aggiungi servizi al container
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers(); // Per API Controllers
+
+// Configura Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "CreazioneListe API", Version = "v1" });
+});
 
 // Aggiungi i servizi definiti nel progetto
 builder.Services.AddScoped<IDatabaseService, DatabaseService>();
@@ -42,6 +51,13 @@ if (!app.Environment.IsDevelopment())
 else
 {
     app.UseDeveloperExceptionPage();
+    // Abilita Swagger in sviluppo
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CreazioneListe API V1");
+        c.RoutePrefix = "swagger"; // Accessibile da /swagger
+    });
 }
 
 app.UseHttpsRedirection();

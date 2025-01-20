@@ -2,7 +2,6 @@
 using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.SqlServer.Server;
 using System.Data;
 
 namespace CreazioneListe.Controllers

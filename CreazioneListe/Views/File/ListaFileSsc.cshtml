@@ -17,12 +17,19 @@
             <tr>
                 <td>@file.Name</td>
                 <td>
-                    <a asp-controller="File" asp-action="Download" asp-route-tenant="@tenant" asp-route-fileName="@file.Name" class="btn btn-outline-primary">Download</a>
+                    <a asp-controller="File" asp-action="Download" asp-route-tenant="@tenant" asp-route-fileName="@file.Name"
+                       class="btn btn-outline-primary download-link" data-file-name="@file.Name">Download</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<a asp-controller="File" asp-action="DownloadAll" asp-route-tenant="@tenant" class="btn btn-outline-success mt-3">Download Tutti i File</a>
-<a asp-controller="SelezionaSsc" asp-action="Index" class="btn btn-outline-secondary mt-3">Torna alla Selezione</a>
+<div class="mt-3">
+    <button class="btn btn-outline-success" onclick="scaricaTutti()">Download Tutti i File</button>
+    <a asp-controller="SelezionaSsc" asp-action="Index" class="btn btn-outline-secondary">Torna alla Selezione</a>
+</div>
+
+<script type="text/javascript">
+    
+</script>

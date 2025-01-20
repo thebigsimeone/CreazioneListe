@@ -4,9 +4,9 @@ namespace CreazioneListe.Models
 {
     public class ExcelFileCacheData
     {
-        public List<DataTable> DataTables { get; set; }
-        public List<RichiestaExcel> RichiesteExcel { get; set; }
-        public FormData FormData { get; set; }
+        public List<DataTable>? DataTables { get; set; }
+        public List<RichiestaExcel>? RichiesteExcel { get; set; }
+        public FormData? FormData { get; set; }
     }
 
 }
