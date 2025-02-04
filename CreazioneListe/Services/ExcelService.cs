@@ -46,7 +46,21 @@ namespace CreazioneListe.Services
                 for (int i = 0; i < dataTables.Count; i++)
                 {
                     var richiesta = richiesteExcel[i];
-                    var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{DateTime.Now:yyyyMMdd-HHmm}_{richiesta.TotRic}";
+                    var dataTable = dataTables[i];
+
+                    string codAccSuffix = "";
+                    if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
+                    {
+                        foreach (DataRow row in dataTable.Rows)
+                        {
+                            if (row["PBACLI"].ToString().Contains("18156")) {
+                                codAccSuffix = "CC";
+                                break;
+                            }
+                        }
+                    }
+
+                    var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{codAccSuffix}_{DateTime.Now:yyyyMMdd-HHmm}_{richiesta.TotRic}";
                     var fileName = $"{baseFileName}.xlsx";
                     var filePath = Path.Combine(directoryPath, fileName);
                     int fileIndex = 1;
@@ -65,7 +79,7 @@ namespace CreazioneListe.Services
                     using (var package = new ExcelPackage())
                     {
                         var worksheet = package.Workbook.Worksheets.Add("Dati");
-                        var dataTable = dataTables[i];
+
 
                         // Aggiungi intestazioni
                         for (int col = 0; col < dataTable.Columns.Count; col++)

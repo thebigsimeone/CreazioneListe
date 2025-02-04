@@ -3,12 +3,13 @@
     var tenant = ViewBag.Tenant ?? "EBI";
 }
 
-<h2>Lista File Generati per Tenant: @tenant</h2>
-<table class="table">
-    <thead>
+<h2 class="mb-4">Lista File Generati per Tenant: <strong>@tenant</strong></h2>
+<table class="table table-bordered align-middle">
+    <thead class="table-light">
         <tr>
             <th>Nome File</th>
-            <th>Azioni</th>
+            <th>SCARICA</th>
+            <th>Invia nell'area fornitori</th>
         </tr>
     </thead>
     <tbody>
@@ -18,7 +19,20 @@
                 <td>@file.Name</td>
                 <td>
                     <a asp-controller="File" asp-action="Download" asp-route-tenant="@tenant" asp-route-fileName="@file.Name"
-                       class="btn btn-outline-primary download-link" data-file-name="@file.Name">Download</a>
+                       class="btn btn-outline-primary btn-sm">Download</a>
+                </td>
+                <td>
+                    <form class="send-file-form d-flex align-items-center gap-2" asp-controller="File" asp-action="SendFile" method="post">
+                        <input type="hidden" name="fileName" value="@file.Name" />
+                        <input type="hidden" name="tenant" value="@tenant" />
+                        <select class="form-select form-select-sm w-auto" name="selectedDirectory" required>
+                            <option value="/CANDELA/RICHIESTE">CANDELA</option>
+                            <option value="/ACT/RICHIESTE">ACT</option>
+                            <option value="/FORZA/RICHIESTE">FORZA</option>
+                            <option value="/GIAMPAOLO/RICHIESTE">GIAMPAOLO</option>
+                        </select>
+                        <button type="submit" class="btn btn-success btn-sm">Invia</button>
+                    </form>
                 </td>
             </tr>
         }
@@ -29,4 +43,3 @@
     <button class="btn btn-outline-success" onclick="scaricaTutti()">Download Tutti i File</button>
     <a asp-controller="SelezionaEbi" asp-action="Index" class="btn btn-outline-secondary">Torna alla Selezione</a>
 </div>
-

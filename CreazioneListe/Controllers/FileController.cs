@@ -1,15 +1,22 @@
 ﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Services;
 using Microsoft.AspNetCore.Mvc;
+using Renci.SshNet;
+using System.IO;
 
 namespace CreazioneListe.Controllers
 {
     public class FileController : Controller
     {
         private readonly IFileService _fileService;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<FileController> _logger;
 
-        public FileController(IFileService fileService)
+        public FileController(IFileService fileService, IConfiguration configuration, ILogger<FileController> logger)
         {
             _fileService = fileService;
+            _configuration = configuration;
+            _logger = logger;
         }
 
         public IActionResult ListaFile(string tenant)
@@ -86,6 +93,60 @@ namespace CreazioneListe.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendFile([FromForm] string fileName, [FromForm] string tenant, [FromForm] string selectedDirectory)
+        {
+            if (string.IsNullOrEmpty(fileName) || string.IsNullOrEmpty(tenant) || string.IsNullOrEmpty(selectedDirectory))
+            {
+                return BadRequest("Parametri non validi.");
+            }
+
+            try
+            {
+                // Recupera il file dal server
+                var file = _fileService.GetFile(tenant, fileName);
+
+                using (var fileStream = file.OpenRead())
+                {
+                    // **Passaggio 1: Caricare il file nell'area SFTP**
+                    var sftpService = new SftpService("access854988094.webspace-data.io", 22, "acc30641284", "5zgeHOyDnC");
+                    using (var client = new SftpClient("access854988094.webspace-data.io", 22, "acc30641284", "5zgeHOyDnC"))
+                    {
+                        client.Connect();
+                        client.UploadFile(fileStream, $"{selectedDirectory}/{file.Name}");
+                        client.Disconnect();
+                    }
+
+                    // **Passaggio 2: Inviare il file all'API remota**
+                    using (var client = new HttpClient())
+                    {
+                        using (var multipartFormDataContent = new MultipartFormDataContent())
+                        {
+                            fileStream.Position = 0; // Reset del file stream per il secondo utilizzo
+                            var fileContent = new StreamContent(fileStream);
+                            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+                            multipartFormDataContent.Add(fileContent, "file", file.Name);
+
+                            var response = await client.PostAsync("https://localhost:7027/api/Create/upload", multipartFormDataContent);
+
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                return StatusCode((int)response.StatusCode, $"Errore nell'invio all'API: {await response.Content.ReadAsStringAsync()}");
+                            }
+                        }
+                    }
+                }
+
+                return Ok($"File {fileName} inviato con successo a {selectedDirectory} e all'API esterna.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Errore durante l'invio del file {FileName} alla directory {Directory} e all'API.", fileName, selectedDirectory);
+                return StatusCode(500, $"Errore durante l'invio del file: {ex.Message}");
             }
         }
     }

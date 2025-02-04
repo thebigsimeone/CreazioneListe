@@ -1,6 +1,8 @@
 ﻿using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
+using CreazioneListe.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.IO.Compression;
 
 namespace CreazioneListe.Controllers
 {
@@ -79,6 +81,52 @@ namespace CreazioneListe.Controllers
             {
                 _logger.LogError(ex, "Errore durante il download del file ZIP per il tenant {Tenant} e data {DataAff}.", tenant, dataAff);
                 return StatusCode(500, "Errore durante il download del file ZIP. Si prega di riprovare più tardi.");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CustomDownload([FromQuery] string remotePath)
+        {
+            if (string.IsNullOrEmpty(remotePath))
+            {
+                return BadRequest("Percorso non valido.");
+            }
+
+            try
+            {
+                var sftpService = new SftpService("access854988094.webspace-data.io", 22, "acc30641284", "5zgeHOyDnC");
+                var files = sftpService.ListFiles(remotePath); // Ottieni la lista dei file nella directory selezionata
+
+                if (files.Count == 0)
+                {
+                    return NotFound("Nessun file trovato nella directory selezionata.");
+                }
+
+                // Creazione di uno ZIP con i file dalla directory selezionata
+                var zipFileName = $"Files_{DateTime.Now:yyyyMMddHHmmss}.zip";
+                var memoryStream = new MemoryStream();
+
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    foreach (var file in files)
+                    {
+                        using (var fileStream = sftpService.DownloadFile(file))
+                        {
+                            var entry = archive.CreateEntry(Path.GetFileName(file));
+                            using (var entryStream = entry.Open())
+                            {
+                                await fileStream.CopyToAsync(entryStream);
+                            }
+                        }
+                    }
+                }
+
+                memoryStream.Position = 0;
+                return File(memoryStream, "application/zip", zipFileName);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Errore durante il download: {ex.Message}");
             }
         }
 

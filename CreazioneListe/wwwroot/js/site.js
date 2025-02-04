@@ -13,3 +13,26 @@ function scaricaTutti() {
         }, index * delay);
     });
 }
+
+document.querySelectorAll('.send-file-form').forEach(form => {
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+
+        try {
+            const response = await fetch(event.target.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert("File inviato con successo!");
+            } else {
+                const error = await response.text();
+                alert(`Errore: ${error}`);
+            }
+        } catch (error) {
+            alert(`Errore di connessione: ${error.message}`);
+        }
+    });
+});
