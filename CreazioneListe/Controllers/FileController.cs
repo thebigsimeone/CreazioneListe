@@ -131,7 +131,7 @@ namespace CreazioneListe.Controllers
 
                             multipartFormDataContent.Add(fileContent, "file", file.Name);
 
-                            var response = await client.PostAsync("https://localhost:7027/api/Create/upload", multipartFormDataContent);
+                            var response = await client.PostAsync("http://192.168.50.207:5280/api/Create/upload", multipartFormDataContent);
 
                             if (!response.IsSuccessStatusCode)
                             {
