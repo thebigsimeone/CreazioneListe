@@ -21,7 +21,7 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 
 // Aggiungi servizi al container
 builder.Services.AddControllersWithViews();
-builder.Services.AddControllers(); // Per API Controllers
+builder.Services.AddControllers();
 
 // Configura Swagger
 builder.Services.AddEndpointsApiExplorer();
