@@ -54,16 +54,19 @@ function toggleFormato(index) {
     }
 }
 
-function selezionaTutte() {
-    let checkboxes = document.querySelectorAll('.row-checkbox');
-    tutteSelezionate = !tutteSelezionate;
+let tutteSelezionate = false;
 
+function selezionaTutte() {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    tutteSelezionate = !tutteSelezionate; // Cambia lo stato
     checkboxes.forEach(checkbox => {
         checkbox.checked = tutteSelezionate;
-        let index = checkbox.id.split("_")[1];
-        toggleFormato(index);
+        toggleFormato(checkbox.getAttribute('id').split('_')[1]); // Aggiorna il formato
     });
 
-    let button = document.querySelector('button[onclick="selezionaTutte()"]');
-    button.textContent = tutteSelezionate ? "Deseleziona Tutto" : "Seleziona Tutto";
+    // Modifica il testo del pulsante in base allo stato corrente
+    const button = document.querySelector('button[onclick="selezionaTutte()"]');
+    if (button) {
+        button.textContent = tutteSelezionate ? "Deseleziona Tutto" : "Seleziona Tutto";
+    }
 }
