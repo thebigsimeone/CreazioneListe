@@ -87,15 +87,51 @@ namespace CreazioneListe.Services
 
                 using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
                 {
-                    var query = @"SELECT ISNULL(T1.TBBDES, '') AS TipoIND, ISNULL(T2.TBBDES, '') AS TipoCONT, PBARDGF0.*, IBAOGGF0.*, DATORILAV.*
-                                  FROM PBSACOF0
-                                  INNER JOIN PBARDGF0 ON PBAANP = PBSAPR AND PBANUP = PBSNPR
-                                  LEFT JOIN IBAOGGF0 ON IBACOG = PBAOGG
-                                  LEFT JOIN TBBTABF0 AS T1 ON T1.TBBTTA = 'IND' AND T1.TBBCLI = 'IT' AND T1.TBBCTA = IBAIND
-                                  LEFT JOIN DATORILAV ON LAVOGG = PBAOGG
-                                  LEFT JOIN TBBTABF0 AS T2 ON T2.TBBTTA = 'DCO' AND T2.TBBCLI = 'IT' AND T2.TBBCTA = LAVCONT
-                                  WHERE PBSDAF >= @DaDataAff AND PBSDAF <= @DataAff AND PBSPAC = '2' AND PBSSCARICO <> 'S'
-                                  AND PBSNCO = @NazCor AND PBSCCO = @CodCor AND PBSACC = @CodAcc AND PBSURG = @CodUrg AND PBACOP <> 'SCO'";
+                    // Costruzione dinamica della query
+                    var queryBuilder = new StringBuilder();
+                    queryBuilder.Append(@"
+                                            SELECT ISNULL(T1.TBBDES, '') AS TipoIND, 
+                                                   ISNULL(T2.TBBDES, '') AS TipoCONT, 
+                                                   PBARDGF0.*, 
+                                                   IBAOGGF0.*, 
+                                                   DATORILAV.*");
+
+                    // Se CodCor è "VUT", includi IC6DRSF0
+                    if (richiestaExcel.CodCor == "VUT")
+                    {
+                        queryBuilder.Append(@", IC6DRSF0.*");
+                    }
+
+                    queryBuilder.Append(@"
+                                            FROM PBSACOF0
+                                            INNER JOIN PBARDGF0 ON PBAANP = PBSAPR AND PBANUP = PBSNPR
+                                            LEFT JOIN IBAOGGF0 ON IBACOG = PBAOGG
+                                            LEFT JOIN TBBTABF0 AS T1 ON T1.TBBTTA = 'IND' AND T1.TBBCLI = 'IT' AND T1.TBBCTA = IBAIND
+                                            LEFT JOIN DATORILAV ON LAVOGG = PBAOGG
+                                            LEFT JOIN TBBTABF0 AS T2 ON T2.TBBTTA = 'DCO' AND T2.TBBCLI = 'IT' AND T2.TBBCTA = LAVCONT");
+
+                    // Se CodCor è "VUT", aggiungi la join con IC6DRSF0 e il filtro sulla colonna IC6TES
+                    if (richiestaExcel.CodCor == "VUT")
+                    {
+                        queryBuilder.Append(@"
+                                            LEFT JOIN IC6DRSF0 ON IC6OGG = PBAOGG
+                                            AND IC6TMO = 'TEL' 
+                                            AND IC6TES LIKE 'TEL.:%' 
+                                            AND IC6TES NOT LIKE '%ATTIVO%'");
+                    }
+
+                    queryBuilder.Append(@"
+                                            WHERE PBSDAF >= @DaDataAff 
+                                            AND PBSDAF <= @DataAff 
+                                            AND PBSPAC = '2' 
+                                            AND PBSSCARICO <> 'S' 
+                                            AND PBSNCO = @NazCor 
+                                            AND PBSCCO = @CodCor 
+                                            AND PBSACC = @CodAcc 
+                                            AND PBSURG = @CodUrg 
+                                            AND PBACOP <> 'SCO'");
+
+                    string query = queryBuilder.ToString();
 
                     using (var command = new SqlCommand(query, connection))
                     {

@@ -36,3 +36,34 @@ document.querySelectorAll('.send-file-form').forEach(form => {
         }
     });
 });
+
+function aggiornaFormato(index, formato) {
+    let formatoInput = document.getElementById(`formato_${index}`);
+    formatoInput.value = formato;
+}
+
+function toggleFormato(index) {
+    let checkbox = document.getElementById(`rowCheck_${index}`);
+    let formatoInput = document.getElementById(`formato_${index}`);
+
+    if (checkbox.checked) {
+        formatoInput.disabled = false; // Abilita l'invio del formato solo se la riga è selezionata
+    } else {
+        formatoInput.disabled = true; // Disabilita il formato se la riga non è selezionata
+        formatoInput.value = "B"; // Reset al valore di default
+    }
+}
+
+function selezionaTutte() {
+    let checkboxes = document.querySelectorAll('.row-checkbox');
+    tutteSelezionate = !tutteSelezionate;
+
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = tutteSelezionate;
+        let index = checkbox.id.split("_")[1];
+        toggleFormato(index);
+    });
+
+    let button = document.querySelector('button[onclick="selezionaTutte()"]');
+    button.textContent = tutteSelezionate ? "Deseleziona Tutto" : "Seleziona Tutto";
+}

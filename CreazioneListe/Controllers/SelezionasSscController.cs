@@ -133,6 +133,9 @@ namespace CreazioneListe.Controllers
                         richiestaExcel.TotRic = data.Rows.Count;
                         richiesteExcel.Add(richiestaExcel);
 
+                        _logger.LogInformation("Righe selezionate: {SelectedRows}", string.Join(",", selectedRows));
+                        _logger.LogInformation("Formati ricevuti: {Formati}", string.Join(",", formato));
+
                         var dataFiltrata = _colonneFiltraggioService.FiltraColonne(data, richiestaExcel, tenant);
                         dataTables.Add(dataFiltrata);
                         /*foreach (DataRow row in data.Rows)

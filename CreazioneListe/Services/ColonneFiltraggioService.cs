@@ -75,6 +75,48 @@ namespace CreazioneListe.Services
                     }
                 }
 
+                if (richiesta.CodAcc == "VUT")
+                {
+                    if (!dataTableFiltrato.Columns.Contains("TEL 1"))
+                    {
+                        dataTableFiltrato.Columns.Add("TEL 1", typeof(string));
+                    }
+                    if (!dataTableFiltrato.Columns.Contains("TEL 2"))
+                    {
+                        dataTableFiltrato.Columns.Add("TEL 2", typeof(string));
+                    }
+                    if (!dataTableFiltrato.Columns.Contains("ATTIVO 1"))
+                    {
+                        dataTableFiltrato.Columns.Add("ATTIVO 1", typeof(string));
+                    }
+                    if (!dataTableFiltrato.Columns.Contains("ATTIVO 2"))
+                    {
+                        dataTableFiltrato.Columns.Add("ATTIVO 2", typeof(string));
+                    }
+
+                    if (dataTable.Columns.Contains("IC6TES"))
+                    {
+                        string ic6tesValue = row["IC6TES"]?.ToString().Trim();
+
+                        if (!string.IsNullOrEmpty(ic6tesValue))
+                        {
+                            // Estrai tutti i numeri validi separati da spazio, virgola o altro
+                            var numeri = ic6tesValue.Split(new[] { ' ', ',', ';', '/' }, StringSplitOptions.RemoveEmptyEntries)
+                                                    .Where(n => n.All(char.IsDigit)) // Considera solo stringhe numeriche
+                                                    .ToList();
+
+                            if (numeri.Count > 0)
+                            {
+                                newRow["TEL 1"] = numeri[0];
+                            }
+                            if (numeri.Count > 1)
+                            {
+                                newRow["TEL 2"] = numeri[1];
+                            }
+                        }
+                    }
+                }
+
                 // Se PBACFI è vuoto, utilizza PBAPIV come Codice Fiscale
                 if (dataTable.Columns.Contains("PBACFI") && !string.IsNullOrWhiteSpace(row["PBACFI"].ToString()))
                 {
