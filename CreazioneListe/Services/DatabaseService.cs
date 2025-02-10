@@ -97,7 +97,7 @@ namespace CreazioneListe.Services
                                                    DATORILAV.*");
 
                     // Se CodCor è "VUT", includi IC6DRSF0
-                    if (richiestaExcel.CodCor == "VUT")
+                    if (richiestaExcel.CodAcc == "VUT")
                     {
                         queryBuilder.Append(@", IC6DRSF0.*");
                     }
@@ -111,7 +111,7 @@ namespace CreazioneListe.Services
                                             LEFT JOIN TBBTABF0 AS T2 ON T2.TBBTTA = 'DCO' AND T2.TBBCLI = 'IT' AND T2.TBBCTA = LAVCONT");
 
                     // Se CodCor è "VUT", aggiungi la join con IC6DRSF0 e il filtro sulla colonna IC6TES
-                    if (richiestaExcel.CodCor == "VUT")
+                    if (richiestaExcel.CodAcc == "VUT")
                     {
                         queryBuilder.Append(@"
                                             LEFT JOIN IC6DRSF0 ON IC6OGG = PBAOGG

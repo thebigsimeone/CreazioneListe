@@ -48,19 +48,7 @@ namespace CreazioneListe.Services
                     var richiesta = richiesteExcel[i];
                     var dataTable = dataTables[i];
 
-                    string codAccSuffix = "";
-                    if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
-                    {
-                        foreach (DataRow row in dataTable.Rows)
-                        {
-                            if (row["PBACLI"].ToString().Contains("18156")) {
-                                codAccSuffix = "CC";
-                                break;
-                            }
-                        }
-                    }
-
-                    var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{codAccSuffix}_{DateTime.Now:yyyyMMdd-HHmm}_{richiesta.TotRic}";
+                    var baseFileName = $"{richiesta.NazCor}-{richiesta.CodCor}_{tenant}_{richiesta.CodAcc}_{DateTime.Now:yyyyMMdd-HHmm}_{richiesta.TotRic}";
                     var fileName = $"{baseFileName}.xlsx";
                     var filePath = Path.Combine(directoryPath, fileName);
                     int fileIndex = 1;
