@@ -18,8 +18,9 @@
             <tr>
                 <td>@file.Name</td>
                 <td>
-                    <a asp-controller="File" asp-action="Download" asp-route-tenant="@tenant" asp-route-fileName="@file.Name"
-                       class="btn btn-outline-primary btn-sm">Download</a>
+                    <a href="@Url.Action("Download", "File", new { tenant = tenant, fileName = file.Name })"
+                       class="btn btn-outline-primary btn-sm download-link"
+                       download="@file.Name">Download</a>
                 </td>
                 <td>
                     <form class="send-file-form d-flex align-items-center gap-2" asp-controller="File" asp-action="SendFile" method="post">
@@ -28,6 +29,7 @@
                         <select class="form-select form-select-sm w-auto" name="selectedDirectory" required>
                             <option value="/CANDELA/RICHIESTE">CANDELA</option>
                             <option value="/ACT/RICHIESTE">ACT</option>
+                            <option value="/DIR1/RICHIESTE">DIR1</option>
                             <option value="/FORZA/RICHIESTE">FORZA</option>
                             <option value="/GIAMPAOLO/RICHIESTE">GIAMPAOLO</option>
                         </select>

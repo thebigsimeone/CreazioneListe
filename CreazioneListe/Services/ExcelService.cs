@@ -115,7 +115,7 @@ namespace CreazioneListe.Services
                         xPercorso: truncatedFilePath,
                         nomeFile: truncatedFileName,
                         formato: richiesta.Formato ?? string.Empty,
-                        operatore: "ST8",
+                        operatore: "st8",
                         tenant: tenant
                     );
 

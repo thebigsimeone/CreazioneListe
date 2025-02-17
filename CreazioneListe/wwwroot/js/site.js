@@ -3,16 +3,35 @@
 
 // Write your JavaScript code.
 function scaricaTutti() {
-    const links = document.querySelectorAll(".download-link");
-    const delay = 1000; // Ritardo tra i download (in millisecondi)
+    const links = document.querySelectorAll("td a.btn-outline-primary"); // Seleziona i bottoni Download
+    const delay = 750; // Ritardo tra i download (in millisecondi)
+
+    if (links.length === 0) {
+        console.warn("Nessun link di download trovato.");
+        return;
+    }
 
     links.forEach((link, index) => {
         setTimeout(() => {
-            console.log(`Scaricando il file: ${link.getAttribute("data-file-name")}`);
-            link.click();
+            const url = link.href;
+            if (!url) {
+                console.warn("URL di download non trovato per un file.");
+                return;
+            }
+
+            const fileName = link.getAttribute("asp-route-fileName") || "download";
+            console.log(`Scaricando il file: ${fileName}`);
+
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = fileName;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
         }, index * delay);
     });
 }
+
 
 document.querySelectorAll('.send-file-form').forEach(form => {
     form.addEventListener('submit', async event => {
