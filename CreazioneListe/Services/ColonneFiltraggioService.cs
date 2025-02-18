@@ -143,6 +143,12 @@ namespace CreazioneListe.Services
                         dataTableFiltrato.Columns.Add("Denominazione", typeof(string));
                     }
                     newRow["Denominazione"] = row["PBADEN"].ToString();
+                    string columnName = $"ESITO";
+                    if (!dataTableFiltrato.Columns.Contains(columnName))
+                    {
+                        dataTableFiltrato.Columns.Add(columnName, typeof(string));
+                    }
+                    newRow[columnName] = "";
                 }
 
                 if (richiesta.CodAcc == "CMO")

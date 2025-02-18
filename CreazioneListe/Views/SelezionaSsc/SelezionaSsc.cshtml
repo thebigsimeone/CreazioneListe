@@ -3,7 +3,6 @@
     ViewData["Title"] = "Seleziona File SSC";
 }
 @{
-    // Mappatura per sostituire i nomi tecnici delle colonne con nomi più leggibili
     var columnNamesMap = new Dictionary<string, string>
     {
         { "PBSNCO", "CodNaz" },
@@ -20,7 +19,7 @@
 <div class="container-fluid">
     <h2 class="text-center my-4">Seleziona Dati da Includere nel File Excel SSC</h2>
 
-    <form asp-controller="SelezionaSsc" asp-action="CreaFile" method="post">
+    <form asp-controller="SelezionaSsc" asp-action="CreaFile" method="post" id="selezionaForm">
         <div class="form-group text-center mb-3">
             <button type="button" class="btn btn-outline-secondary" onclick="selezionaTutte()">Seleziona Tutto</button>
         </div>
@@ -31,10 +30,10 @@
                         <th>Seleziona</th>
                         @foreach (System.Data.DataColumn column in Model.Columns)
                         {
-                            // Utilizza il nome descrittivo se disponibile, altrimenti usa il nome originale
                             <th>@(columnNamesMap.ContainsKey(column.ColumnName) ? columnNamesMap[column.ColumnName] : column.ColumnName)</th>
                         }
                         <th>Formato</th>
+                        <th>Unisci</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,7 +42,9 @@
                         var row = Model.Rows[i];
                         <tr>
                             <td class="text-center">
-                                <input type="checkbox" id="rowCheck_@i" name="selectedRows" class="btn-check row-checkbox" value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"],@i" autocomplete="off" onchange="toggleFormato(@i)">
+                                <input type="checkbox" id="rowCheck_@i" name="selectedRows" class="btn-check row-checkbox"
+                                       value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"],@i"
+                                       onchange="toggleFormato(@i)">
                                 <label class="btn btn-outline-primary btn-check-outlined" for="rowCheck_@i">Seleziona</label>
                             </td>
                             @foreach (var item in row.ItemArray)
@@ -51,27 +52,15 @@
                                 <td>@item</td>
                             }
                             <td class="text-center">
-                                @{
-                                    string radioGroupName = $"formato_{i}";
-                                }
-                                <div class="form-check form-check-inline">
-                                    <input type="radio" name="@radioGroupName" value="B" class="form-check-input" onchange="aggiornaFormato(@i, 'B')" checked />
-                                    <label class="form-check-label">Base</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input type="radio" name="@radioGroupName" value="R" class="form-check-input" onchange="aggiornaFormato(@i, 'R')" />
-                                    <label class="form-check-label">RT4/RT8</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input type="radio" name="@radioGroupName" value="EREDI" class="form-check-input" onchange="aggiornaFormato(@i, 'EREDI')" />
-                                    <label class="form-check-label">RT6</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input type="radio" name="@radioGroupName" value="CLIENTE" class="form-check-input" onchange="aggiornaFormato(@i, 'CLIENTE')" />
-                                    <label class="form-check-label">CODCLI</label>
-                                </div>
-                                <!-- Input nascosto per salvare il formato -->
-                                <input type="hidden" name="formato[]" id="formato_@i" value="B" disabled />
+                                <select id="formato_@i" class="form-select form-select-sm" disabled>
+                                    <option value="B">Base</option>
+                                    <option value="R">RT4/RT8</option>
+                                    <option value="EREDI">RT6</option>
+                                    <option value="CLIENTE">CODCLI</option>
+                                </select>
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" id="unisci_@i" class="form-check-input" value="false" onchange="toggleUnisci(@i)" disabled />
                             </td>
                         </tr>
                     }

@@ -80,7 +80,7 @@ namespace CreazioneListe.Controllers
             }
         }
 
-        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string tenant = "SSC")
+        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string[] unisci, string tenant = "SSC")
         {
             if (selectedRows == null || selectedRows.Length == 0)
             {
@@ -90,96 +90,102 @@ namespace CreazioneListe.Controllers
 
             try
             {
-                _logger.LogInformation("Avvio della creazione dei file Excel per il tenant {Tenant}.", tenant);
+                var richiesteExcel = new List<RichiestaExcel>();
+                var dataTables = new List<DataTable>();
+                FormData formData = null;
 
-                // Crea una chiave per il cache
-                var cacheKey = $"CreaFile_{tenant}_{string.Join("_", selectedRows)}";
+                var richiesteDaUnire = new Dictionary<string, List<RichiestaExcel>>();
+                var dataTablesDaUnire = new Dictionary<string, List<DataTable>>();
 
-                ExcelFileCacheData cacheData;
-
-                // Controlla se i dati sono già in cache
-                if (_memoryCache.TryGetValue(cacheKey, out cacheData))
+                for (int i = 0; i < selectedRows.Length; i++)
                 {
-                    _logger.LogInformation("Ripristinando dati dalla cache per il tenant {Tenant}.", tenant);
-                }
-                else
-                {
-                    var dataTables = new List<DataTable>();
-                    var richiesteExcel = new List<RichiestaExcel>();
-                    FormData formData = null;
+                    var datiSelezionati = selectedRows[i].Split(',');
 
-                    foreach (var selectedRow in selectedRows)
+                    var richiestaExcel = new RichiestaExcel
                     {
-                        var datiSelezionati = selectedRow.Split(',');
-                        var richiestaExcel = new RichiestaExcel
-                        {
-                            NazCor = datiSelezionati.ElementAtOrDefault(0) ?? string.Empty,
-                            CodCor = datiSelezionati.ElementAtOrDefault(1) ?? "0",
-                            CodAcc = datiSelezionati.ElementAtOrDefault(2) ?? string.Empty,
-                            CodUrg = datiSelezionati.ElementAtOrDefault(3) ?? string.Empty,
-                            Formato = formato.ElementAtOrDefault(richiesteExcel.Count) ?? string.Empty
-                        };
-
-                        formData = new FormData
-                        {
-                            DaDataAff = DateTime.Now.AddDays(-7).ToString("yyyyMMdd"),
-                            DataAff = DateTime.Now.ToString("yyyyMMdd"),
-                            NazCor = richiestaExcel.NazCor,
-                            CodCor = richiestaExcel.CodCor,
-                            CodAcc = richiestaExcel.CodAcc
-                        };
-
-                        var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, tenant);
-                        richiestaExcel.TotRic = data.Rows.Count;
-                        richiesteExcel.Add(richiestaExcel);
-
-                        _logger.LogInformation("Righe selezionate: {SelectedRows}", string.Join(",", selectedRows));
-                        _logger.LogInformation("Formati ricevuti: {Formati}", string.Join(",", formato));
-
-                        var dataFiltrata = _colonneFiltraggioService.FiltraColonne(data, richiestaExcel, tenant);
-                        dataTables.Add(dataFiltrata);
-                        /*foreach (DataRow row in data.Rows)
-                        {
-                            _moduloService.AggiornaFileCorrispondenti(
-                                int.Parse(row["PBAANP"].ToString()),
-                                int.Parse(row["PBANUP"].ToString()),
-                                richiestaExcel.CodAcc,
-                                richiestaExcel.CodUrg,
-                                richiestaExcel.NazCor,
-                                richiestaExcel.CodCor,
-                                "",
-                                tenant
-                            );
-                        }*/
-                    }
-
-                    // Crea l'oggetto da mettere in cache
-                    cacheData = new ExcelFileCacheData
-                    {
-                        DataTables = dataTables,
-                        RichiesteExcel = richiesteExcel,
-                        FormData = formData
+                        NazCor = datiSelezionati[0],
+                        CodCor = datiSelezionati[1],
+                        CodAcc = datiSelezionati[2],
+                        CodUrg = datiSelezionati[3],
+                        Formato = formato.ElementAtOrDefault(i) ?? "B"
                     };
 
-                    // Salva i dati in cache con un timeout di 30 minuti
-                    _memoryCache.Set(cacheKey, cacheData, TimeSpan.FromMinutes(30));
+                    formData = new FormData
+                    {
+                        DaDataAff = DateTime.Now.AddDays(-7).ToString("yyyyMMdd"),
+                        DataAff = DateTime.Now.ToString("yyyyMMdd"),
+                        NazCor = richiestaExcel.NazCor,
+                        CodCor = richiestaExcel.CodCor,
+                        CodAcc = richiestaExcel.CodAcc
+                    };
+
+                    var data = await _databaseService.GetSelectedAsync(richiestaExcel, formData, tenant);
+                    richiestaExcel.TotRic = data.Rows.Count;
+                    var dataFiltrata = _colonneFiltraggioService.FiltraColonne(data, richiestaExcel, tenant);
+
+                    /*foreach (DataRow row in data.Rows)
+                    {
+                        _moduloService.AggiornaFileCorrispondenti(
+                            int.Parse(row["PBAANP"].ToString()),
+                            int.Parse(row["PBANUP"].ToString()),
+                            richiestaExcel.CodAcc,
+                            richiestaExcel.CodUrg,
+                            richiestaExcel.NazCor,
+                            richiestaExcel.CodCor,
+                            "",
+                            tenant
+                        );
+                    }*/
+
+                    if (unisci.ElementAtOrDefault(i) == "true")
+                    {
+                        string chiaveUnione = richiestaExcel.CodAcc;
+                        if (!richiesteDaUnire.ContainsKey(chiaveUnione))
+                        {
+                            richiesteDaUnire[chiaveUnione] = new List<RichiestaExcel>();
+                            dataTablesDaUnire[chiaveUnione] = new List<DataTable>();
+                        }
+                        richiesteDaUnire[chiaveUnione].Add(richiestaExcel);
+                        dataTablesDaUnire[chiaveUnione].Add(dataFiltrata);
+                    }
+                    else
+                    {
+                        richiesteExcel.Add(richiestaExcel);
+                        dataTables.Add(dataFiltrata);
+                    }
                 }
 
-                // Utilizza i dati dalla cache
-                var files = await _excelService.CreateExcelFilesAsync(cacheData.DataTables, cacheData.RichiesteExcel, cacheData.FormData, tenant);
+                // Unione dei DataTable con la stessa CodAcc
+                foreach (var codAcc in richiesteDaUnire.Keys)
+                {
+                    var unioneDataTable = dataTablesDaUnire[codAcc].First().Clone(); // Clona la struttura
+                    foreach (var dt in dataTablesDaUnire[codAcc])
+                    {
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            unioneDataTable.ImportRow(row);
+                        }
+                    }
+
+                    var richiestaUnita = richiesteDaUnire[codAcc].First();
+                    richiestaUnita.TotRic = unioneDataTable.Rows.Count;
+
+                    richiesteExcel.Add(richiestaUnita);
+                    dataTables.Add(unioneDataTable);
+                }
+
+                var files = await _excelService.CreateExcelFilesAsync(dataTables, richiesteExcel, formData, tenant);
+
                 ViewBag.Tenant = tenant;
 
-                // Se la creazione dei file è completata con successo, rimuovi la cache
-                _memoryCache.Remove(cacheKey);
-
-                _logger.LogInformation("Creazione dei file Excel completata con successo per il tenant {Tenant}.", tenant);
                 return View("~/Views/File/ListaFileSsc.cshtml", files);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Errore durante la creazione dei file Excel per il tenant {Tenant}.", tenant);
-                return StatusCode(500, "Errore durante la creazione dei file Excel. Si prega di riprovare più tardi.");
+                return StatusCode(500, "Errore durante la creazione dei file Excel.");
             }
         }
+
     }
 }

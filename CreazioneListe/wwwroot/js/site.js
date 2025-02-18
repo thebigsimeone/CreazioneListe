@@ -1,10 +1,7 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
-
-// Write your JavaScript code.
+﻿// Scarica tutti i file
 function scaricaTutti() {
-    const links = document.querySelectorAll("td a.btn-outline-primary"); // Seleziona i bottoni Download
-    const delay = 750; // Ritardo tra i download (in millisecondi)
+    const links = document.querySelectorAll("td a.btn-outline-primary");
+    const delay = 750;
 
     if (links.length === 0) {
         console.warn("Nessun link di download trovato.");
@@ -32,7 +29,7 @@ function scaricaTutti() {
     });
 }
 
-
+// Invia file ai fornitori
 document.querySelectorAll('.send-file-form').forEach(form => {
     form.addEventListener('submit', async event => {
         event.preventDefault();
@@ -56,34 +53,82 @@ document.querySelectorAll('.send-file-form').forEach(form => {
     });
 });
 
+// Gestione invio form per selezione
+document.addEventListener('DOMContentLoaded', function () {
+    const selezionaForm = document.getElementById("selezionaForm");
+    if (selezionaForm) {
+        selezionaForm.addEventListener("submit", function (event) {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const form = event.target;
+
+            console.log("Invio Form...");
+
+            // Rimuove eventuali campi input aggiunti precedentemente
+            document.querySelectorAll('.formato-dinamico, .unisci-dinamico').forEach(el => el.remove());
+
+            checkboxes.forEach((checkbox, index) => {
+                if (checkbox.checked) {
+                    // Formato
+                    const formatoInput = document.createElement("input");
+                    formatoInput.type = "hidden";
+                    formatoInput.name = "formato[]";
+                    formatoInput.value = document.getElementById(`formato_${index}`).value;
+                    formatoInput.classList.add('formato-dinamico');
+                    form.appendChild(formatoInput);
+
+                    // Unisci
+                    const unisciInput = document.createElement("input");
+                    unisciInput.type = "hidden";
+                    unisciInput.name = "unisci[]";
+                    unisciInput.value = document.getElementById(`unisci_${index}`).checked ? "true" : "false";
+                    unisciInput.classList.add('unisci-dinamico');
+                    form.appendChild(unisciInput);
+                }
+            });
+
+            console.log("Dati inviati:", new FormData(selezionaForm));
+        });
+    }
+});
+
+// Attiva/disattiva formato e unisci
+function toggleFormato(index) {
+    let checkbox = document.getElementById(`rowCheck_${index}`);
+    let formatoInput = document.getElementById(`formato_${index}`);
+    let unisciCheckbox = document.getElementById(`unisci_${index}`);
+
+    formatoInput.disabled = !checkbox.checked;
+    unisciCheckbox.disabled = !checkbox.checked;
+
+    if (!checkbox.checked) {
+        unisciCheckbox.checked = false;
+        unisciCheckbox.value = "false";
+    }
+}
+
+// Cambia valore unisci
+function toggleUnisci(index) {
+    let checkbox = document.getElementById(`unisci_${index}`);
+    checkbox.value = checkbox.checked ? "true" : "false";
+}
+
+// Aggiorna valore formato
 function aggiornaFormato(index, formato) {
     let formatoInput = document.getElementById(`formato_${index}`);
     formatoInput.value = formato;
 }
 
-function toggleFormato(index) {
-    let checkbox = document.getElementById(`rowCheck_${index}`);
-    let formatoInput = document.getElementById(`formato_${index}`);
-
-    if (checkbox.checked) {
-        formatoInput.disabled = false; // Abilita l'invio del formato solo se la riga è selezionata
-    } else {
-        formatoInput.disabled = true; // Disabilita il formato se la riga non è selezionata
-        formatoInput.value = "B"; // Reset al valore di default
-    }
-}
-
+// Seleziona/Deseleziona tutte le righe
 let tutteSelezionate = false;
-
 function selezionaTutte() {
     const checkboxes = document.querySelectorAll('.row-checkbox');
-    tutteSelezionate = !tutteSelezionate; // Cambia lo stato
+    tutteSelezionate = !tutteSelezionate;
+
     checkboxes.forEach(checkbox => {
         checkbox.checked = tutteSelezionate;
-        toggleFormato(checkbox.getAttribute('id').split('_')[1]); // Aggiorna il formato
+        toggleFormato(checkbox.getAttribute('id').split('_')[1]);
     });
 
-    // Modifica il testo del pulsante in base allo stato corrente
     const button = document.querySelector('button[onclick="selezionaTutte()"]');
     if (button) {
         button.textContent = tutteSelezionate ? "Deseleziona Tutto" : "Seleziona Tutto";
