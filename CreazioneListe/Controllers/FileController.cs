@@ -106,6 +106,7 @@ namespace CreazioneListe.Controllers
 
             try
             {
+                var normalizedDirectory = selectedDirectory.ToUpperInvariant();
                 // Recupera il file dal server
                 var file = _fileService.GetFile(tenant, fileName);
 
@@ -116,7 +117,12 @@ namespace CreazioneListe.Controllers
                     using (var client = new SftpClient("access854988094.webspace-data.io", 22, "acc30641284", "5zgeHOyDnC"))
                     {
                         client.Connect();
-                        client.UploadFile(fileStream, $"{selectedDirectory}/{file.Name}");
+
+                        if (!client.Exists(normalizedDirectory))
+                        {
+                            client.CreateDirectory(normalizedDirectory);
+                        }
+                        client.UploadFile(fileStream, $"{normalizedDirectory}/{file.Name}");
                         client.Disconnect();
                     }
 

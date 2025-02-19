@@ -8,6 +8,8 @@ namespace CreazioneListe.Models
         ACT,
         [Display(Name = "CESSIONI")]
         CANDELA,
+        [Display(Name = "DIR1")]
+        DIR1,
         [Display(Name = "FORZA")]
         FORZA,
         [Display(Name = "GIAMPAOLO")]
