@@ -10,6 +10,7 @@
             <th>Nome File</th>
             <th>SCARICA</th>
             <th>Invia nell'area fornitori</th>
+            <th>Stato Invio</th>
         </tr>
     </thead>
     <tbody>
@@ -23,18 +24,26 @@
                        download="@file.Name">Download</a>
                 </td>
                 <td>
-                    <form class="send-file-form d-flex align-items-center gap-2" asp-controller="File" asp-action="SendFile" method="post">
+                    <form class="send-file-form d-flex align-items-center gap-2" asp-controller="File" asp-action="SendFile" method="post" data-file-name="@file.Name">
                         <input type="hidden" name="fileName" value="@file.Name" />
                         <input type="hidden" name="tenant" value="@tenant" />
                         <select class="form-select form-select-sm w-auto" name="selectedDirectory" required>
                             <option value="/CANDELA/RICHIESTE">CANDELA</option>
                             <option value="/ACT/RICHIESTE">ACT</option>
-                            <option value="/DIR1/RICHIESTE">DIR1</option>
+                            <option value="/FORNITORE_DIR_1/RICHIESTE">DIR1</option>
                             <option value="/FORZA/RICHIESTE">FORZA</option>
                             <option value="/GIAMPAOLO/RICHIESTE">GIAMPAOLO</option>
                         </select>
                         <button type="submit" class="btn btn-success btn-sm">Invia</button>
                     </form>
+                </td>
+                <td>
+                    <div class="status-container" data-file-name="@file.Name">
+                        <div class="spinner-border spinner-border-sm d-none" role="status">
+                            <span class="visually-hidden">Caricamento...</span>
+                        </div>
+                        <span class="status-message"></span>
+                    </div>
                 </td>
             </tr>
         }

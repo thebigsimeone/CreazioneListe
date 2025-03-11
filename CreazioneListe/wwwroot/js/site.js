@@ -16,7 +16,7 @@ function scaricaTutti() {
                 return;
             }
 
-            const fileName = link.getAttribute("asp-route-fileName") || "download";
+            const fileName = link.getAttribute("download") || "download";
             console.log(`Scaricando il file: ${fileName}`);
 
             const anchor = document.createElement("a");
@@ -29,11 +29,20 @@ function scaricaTutti() {
     });
 }
 
-// Invia file ai fornitori
+// Invia file ai fornitori con spinner e stato
 document.querySelectorAll('.send-file-form').forEach(form => {
     form.addEventListener('submit', async event => {
         event.preventDefault();
+
         const formData = new FormData(event.target);
+        const fileName = form.dataset.fileName;
+        const statusContainer = document.querySelector(`.status-container[data-file-name="${fileName}"]`);
+        const spinner = statusContainer.querySelector('.spinner-border');
+        const statusMessage = statusContainer.querySelector('.status-message');
+
+        // Reset stato
+        statusMessage.textContent = '';
+        spinner.classList.remove('d-none');
 
         try {
             const response = await fetch(event.target.action, {
@@ -41,14 +50,23 @@ document.querySelectorAll('.send-file-form').forEach(form => {
                 body: formData
             });
 
+            spinner.classList.add('d-none');
+
             if (response.ok) {
-                alert("File inviato con successo!");
+                statusMessage.textContent = "Inviato con successo!";
+                statusMessage.classList.remove('text-danger');
+                statusMessage.classList.add('text-success');
             } else {
-                const error = await response.text();
-                alert(`Errore: ${error}`);
+                const errorText = await response.text();
+                statusMessage.textContent = `Errore: ${errorText}`;
+                statusMessage.classList.remove('text-success');
+                statusMessage.classList.add('text-danger');
             }
         } catch (error) {
-            alert(`Errore di connessione: ${error.message}`);
+            spinner.classList.add('d-none');
+            statusMessage.textContent = `Errore di connessione: ${error.message}`;
+            statusMessage.classList.remove('text-success');
+            statusMessage.classList.add('text-danger');
         }
     });
 });
