@@ -1,4 +1,4 @@
-﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
@@ -40,8 +40,7 @@ namespace CreazioneListe.Services
                 }
 
                 // Ricava il percorso troncato per uso nel registro
-                var truncatedPath = directoryPath.Replace(@"\\10.10.20.5\f\", @"F:\")
-                                                 .Replace(@"\\10.10.12.5\f\", @"F:\");
+                var truncatedPath = Path.GetRelativePath(baseDirectory, directoryPath);
 
                 for (int i = 0; i < dataTables.Count; i++)
                 {
@@ -115,7 +114,7 @@ namespace CreazioneListe.Services
                         xPercorso: truncatedFilePath,
                         nomeFile: truncatedFileName,
                         formato: richiesta.Formato ?? string.Empty,
-                        operatore: "st8",
+                        operatore: _configuration["Exports:Operator"] ?? string.Empty,
                         tenant: tenant
                     );
 
@@ -134,3 +133,4 @@ namespace CreazioneListe.Services
         }
     }
 }
+

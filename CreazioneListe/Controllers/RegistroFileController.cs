@@ -1,4 +1,4 @@
-﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using CreazioneListe.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,12 +10,14 @@ namespace CreazioneListe.Controllers
     {
         private readonly IRegistroFileService _registroFileService;
         private readonly IFileService _fileService;
+        private readonly SftpService _sftpService;
         private readonly ILogger<RegistroFileController> _logger;
 
-        public RegistroFileController(IRegistroFileService registroFileService, IFileService fileService, ILogger<RegistroFileController> logger)
+        public RegistroFileController(IRegistroFileService registroFileService, IFileService fileService, ILogger<RegistroFileController> logger, SftpService sftpService)
         {
             _registroFileService = registroFileService;
             _fileService = fileService;
+            _sftpService = sftpService;
             _logger = logger;
         }
 
@@ -94,7 +96,7 @@ namespace CreazioneListe.Controllers
 
             try
             {
-                var sftpService = new SftpService("access854988094.webspace-data.io", 22, "acc30641284", "5zgeHOyDnC");
+                var sftpService = _sftpService;
                 var files = sftpService.ListFiles(remotePath); // Ottieni la lista dei file nella directory selezionata
 
                 if (files.Count == 0)

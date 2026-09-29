@@ -16,8 +16,7 @@ builder.Host.UseSerilog();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                     .AddEnvironmentVariables();
+// CreateBuilder loads JSON, development user secrets, environment variables and arguments.
 
 // Aggiungi servizi al container
 builder.Services.AddControllersWithViews();
@@ -37,13 +36,7 @@ builder.Services.AddScoped<IModuloService, ModuloService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IColonneFiltraggioService, ColonneFiltraggioService>();
 builder.Services.AddScoped<IRegistroFileService, RegistroFileService>();
-builder.Services.AddSingleton(provider =>
-    new SftpService(
-        "access854988094.webspace-data.io",
-        22,
-        "acc30641284",
-        "5zgeHOyDnC"
-    ));
+builder.Services.AddSingleton<SftpService>();
 
 
 builder.Services.AddMemoryCache();
@@ -93,3 +86,4 @@ finally
 {
     Log.CloseAndFlush();
 }
+

@@ -1,4 +1,4 @@
-﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -18,7 +18,7 @@ namespace CreazioneListe.Services
 
         public void ScriviRegistroFile(decimal dataAMG, string oraHMS, decimal dataAff, decimal daDataAff, string nazCor, decimal codCor, string codAcc, string codUrg, int totRic, string xPercorso, string nomeFile, string formato, string operatore, string tenant)
         {
-            string connectionString = _configuration.GetConnectionString(tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC");
+            string connectionString = TenantConfiguration.GetConnectionString(_configuration, tenant);
 
             try
             {
@@ -76,7 +76,7 @@ namespace CreazioneListe.Services
         public async Task<List<RegistroFile>> GetRegistroFilesByDataAsync(string dataAff, string tenant)
         {
             var filesList = new List<RegistroFile>();
-            string connectionString = _configuration.GetConnectionString(tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC");
+            string connectionString = TenantConfiguration.GetConnectionString(_configuration, tenant);
 
             try
             {
@@ -87,7 +87,7 @@ namespace CreazioneListe.Services
                     string query = @"
                             SELECT * 
                             FROM RegistroFile 
-                            LEFT JOIN KBACORF0 ON KBANAZ = ID_NazCor AND KBAPRG = ID_CodCor 
+                            LEFT JOIN Fornitori ON NazioneFornitore = ID_NazCor AND CodiceFornitore = ID_CodCor 
                             WHERE ID_DataReg = @DataAff 
                             ORDER BY ID_CodCor, ID_Ora";
 

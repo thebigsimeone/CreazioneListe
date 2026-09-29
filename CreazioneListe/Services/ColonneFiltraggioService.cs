@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 
@@ -7,18 +7,20 @@ namespace CreazioneListe.Services
     public class ColonneFiltraggioService : IColonneFiltraggioService
     {
         private readonly IModuloService _moduloService;
+        private readonly IConfiguration _configuration;
 
-        public ColonneFiltraggioService(IModuloService moduloService)
+        public ColonneFiltraggioService(IModuloService moduloService, IConfiguration configuration)
         {
             _moduloService = moduloService;
+            _configuration = configuration;
         }
 
         public DataTable FiltraColonne(DataTable dataTable, RichiestaExcel richiesta, string tenant)
         {
             var dataTableFiltrato = new DataTable();
 
-            // Aggiungi la colonna "Azienda" solo se richiesta da CodCor = "8033" e specifica il valore del tenant
-            if (richiesta.CodCor == "8033")
+            // Aggiungi la colonna "Azienda" solo se richiesta da CodCor = il fornitore configurato e specifica il valore del tenant
+            if (!string.IsNullOrWhiteSpace(_configuration["QueryFilters:MandanteSupplierCode"]) && richiesta.CodCor == _configuration["QueryFilters:MandanteSupplierCode"])
             {
                 dataTableFiltrato.Columns.Add("Mandante", typeof(string));
             }
@@ -27,7 +29,7 @@ namespace CreazioneListe.Services
             dataTableFiltrato.Columns.Add("Protocollo", typeof(string));
             dataTableFiltrato.Columns.Add("Codice Fiscale", typeof(string));
 
-            if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
+            if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("ClienteCodice"))
             {
                 if (!dataTableFiltrato.Columns.Contains("CLIENTE"))
                 {
@@ -44,16 +46,16 @@ namespace CreazioneListe.Services
             {
                 var newRow = dataTableFiltrato.NewRow();
 
-                // Imposta il valore "Azienda" basato sul tenant se CodCor = "8033"
-                if (richiesta.CodCor == "8033")
+                // Imposta il valore "Azienda" basato sul tenant se CodCor = il fornitore configurato
+                if (!string.IsNullOrWhiteSpace(_configuration["QueryFilters:MandanteSupplierCode"]) && richiesta.CodCor == _configuration["QueryFilters:MandanteSupplierCode"])
                 {
-                    newRow["Mandante"] = tenant == "EBI" ? "EBI" : "SSC";
+                    newRow["Mandante"] = tenant == "TENANT_A" ? "TENANT_A" : "TENANT_B";
                 }
 
                 // Verifica se le colonne esistono nel DataTable originale prima di accedervi
-                if (dataTable.Columns.Contains("PBAANP") && dataTable.Columns.Contains("PBANUP"))
+                if (dataTable.Columns.Contains("AnnoProtocollo") && dataTable.Columns.Contains("NumeroProtocollo"))
                 {
-                    newRow["Protocollo"] = row["PBAANP"].ToString() + row["PBANUP"].ToString();
+                    newRow["Protocollo"] = row["AnnoProtocollo"].ToString() + row["NumeroProtocollo"].ToString();
                 }
                 else
                 {
@@ -69,9 +71,9 @@ namespace CreazioneListe.Services
                     {
                         dataTableFiltrato.Columns.Add("Partita iva", typeof(string));
                     }
-                    if (dataTable.Columns.Contains("PBAPIV"))
+                    if (dataTable.Columns.Contains("PartitaIva"))
                     {
-                        newRow["Partita iva"] = row["PBAPIV"]?.ToString().Trim(); // Rimuove spazi superflui
+                        newRow["Partita iva"] = row["PartitaIva"]?.ToString().Trim(); // Rimuove spazi superflui
                     }
                 }
 
@@ -94,9 +96,9 @@ namespace CreazioneListe.Services
                         dataTableFiltrato.Columns.Add("ATTIVO 2", typeof(string));
                     }
 
-                    if (dataTable.Columns.Contains("IC6TES"))
+                    if (dataTable.Columns.Contains("TestoAnnotazione"))
                     {
-                        string ic6tesValue = row["IC6TES"]?.ToString().Trim();
+                        string ic6tesValue = row["TestoAnnotazione"]?.ToString().Trim();
 
                         if (!string.IsNullOrEmpty(ic6tesValue))
                         {
@@ -117,23 +119,23 @@ namespace CreazioneListe.Services
                     }
                 }
 
-                // Se PBACFI è vuoto, utilizza PBAPIV come Codice Fiscale
-                if (dataTable.Columns.Contains("PBACFI") && !string.IsNullOrWhiteSpace(row["PBACFI"].ToString()))
+                // Se CodiceFiscale è vuoto, utilizza PartitaIva come Codice Fiscale
+                if (dataTable.Columns.Contains("CodiceFiscale") && !string.IsNullOrWhiteSpace(row["CodiceFiscale"].ToString()))
                 {
-                    codiceFiscale = row["PBACFI"].ToString().Trim();
+                    codiceFiscale = row["CodiceFiscale"].ToString().Trim();
                 }
-                else if (dataTable.Columns.Contains("PBAPIV") && !string.IsNullOrWhiteSpace(row["PBAPIV"].ToString()))
+                else if (dataTable.Columns.Contains("PartitaIva") && !string.IsNullOrWhiteSpace(row["PartitaIva"].ToString()))
                 {
-                    codiceFiscale = row["PBAPIV"].ToString().Trim();
+                    codiceFiscale = row["PartitaIva"].ToString().Trim();
                 }
 
                 // Assegna il valore al Codice Fiscale
                 newRow["Codice Fiscale"] = string.IsNullOrEmpty(codiceFiscale) ? "N/A" : codiceFiscale;
 
                 // Popola la colonna CLIENTE solo se richiesto
-                if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("PBACLI"))
+                if (richiesta.Formato == "CLIENTE" && dataTable.Columns.Contains("ClienteCodice"))
                 {
-                    newRow["CLIENTE"] = row["PBACLI"].ToString();
+                    newRow["CLIENTE"] = row["ClienteCodice"].ToString();
                 }
 
                 if (richiesta.CodAcc == "BAN" || richiesta.CodAcc == "CCL")
@@ -142,7 +144,7 @@ namespace CreazioneListe.Services
                     {
                         dataTableFiltrato.Columns.Add("Denominazione", typeof(string));
                     }
-                    newRow["Denominazione"] = row["PBADEN"].ToString();
+                    newRow["Denominazione"] = row["Denominazione"].ToString();
                     string columnName = $"ESITO";
                     if (!dataTableFiltrato.Columns.Contains(columnName))
                     {
@@ -153,16 +155,16 @@ namespace CreazioneListe.Services
 
                 if (richiesta.CodAcc == "CMO")
                 {
-                    if (!dataTableFiltrato.Columns.Contains("PBADEN"))
+                    if (!dataTableFiltrato.Columns.Contains("Denominazione"))
                     {
-                        dataTableFiltrato.Columns.Add("PBADEN", typeof(string));
+                        dataTableFiltrato.Columns.Add("Denominazione", typeof(string));
                     }
-                    if (!dataTableFiltrato.Columns.Contains("PBACIT"))
+                    if (!dataTableFiltrato.Columns.Contains("ComunePratica"))
                     {
-                        dataTableFiltrato.Columns.Add("PBACIT", typeof(string));
+                        dataTableFiltrato.Columns.Add("ComunePratica", typeof(string));
                     }
-                    newRow["PBADEN"] = row["PBADEN"].ToString();
-                    newRow["PBACIT"] = row["PBACIT"].ToString();
+                    newRow["Denominazione"] = row["Denominazione"].ToString();
+                    newRow["ComunePratica"] = row["ComunePratica"].ToString();
                 }
 
                 if (richiesta.CodAcc == "VED")
@@ -175,7 +177,7 @@ namespace CreazioneListe.Services
                     {
                         dataTableFiltrato.Columns.Add("ESITO", typeof(string));
                     }
-                    newRow["P.Iva"] = row["LAVCFI"].ToString();
+                    newRow["P.Iva"] = row["CodiceFiscaleDatore"].ToString();
                     newRow["ESITO"] = "";
                 }
 
@@ -196,34 +198,34 @@ namespace CreazioneListe.Services
                 {
                     var primoRigo = string.Empty;
 
-                    if (dataTable.Columns.Contains("IBARS1") && dataTable.Columns.Contains("IBARS2"))
+                    if (dataTable.Columns.Contains("CognomeRagioneSociale") && dataTable.Columns.Contains("NomeSoggetto"))
                     {
-                        primoRigo += $"{richiesta.CodAcc} {row["IBARS1"]} {row["IBARS2"]} ";
+                        primoRigo += $"{richiesta.CodAcc} {row["CognomeRagioneSociale"]} {row["NomeSoggetto"]} ";
                     }
 
-                    if (dataTable.Columns.Contains("TipoIND") && dataTable.Columns.Contains("IBADEI") && dataTable.Columns.Contains("IBACII"))
+                    if (dataTable.Columns.Contains("TipoIND") && dataTable.Columns.Contains("Indirizzo") && dataTable.Columns.Contains("NumeroCivico"))
                     {
-                        primoRigo += $"{row["TipoIND"]} {row["IBADEI"]} {row["IBACII"]} ";
+                        primoRigo += $"{row["TipoIND"]} {row["Indirizzo"]} {row["NumeroCivico"]} ";
                     }
 
-                    if (dataTable.Columns.Contains("IBACAP") && dataTable.Columns.Contains("IBACIT"))
+                    if (dataTable.Columns.Contains("Cap") && dataTable.Columns.Contains("ComuneResidenza"))
                     {
-                        primoRigo += $"{row["IBACAP"]} {row["IBACIT"]} ";
+                        primoRigo += $"{row["Cap"]} {row["ComuneResidenza"]} ";
                     }
 
-                    if (dataTable.Columns.Contains("IBAPRV"))
+                    if (dataTable.Columns.Contains("ProvinciaResidenza"))
                     {
-                        primoRigo += $"{row["IBAPRV"]} ";
+                        primoRigo += $"{row["ProvinciaResidenza"]} ";
                     }
 
-                    if (dataTable.Columns.Contains("PBAOGG"))
+                    if (dataTable.Columns.Contains("SoggettoCodice"))
                     {
-                        primoRigo += _moduloService.LeggiModuloTesto(row["PBAOGG"].ToString(), "003", tenant);
+                        primoRigo += _moduloService.LeggiModuloTesto(row["SoggettoCodice"].ToString(), "003", tenant);
                     }
 
-                    if (dataTable.Columns.Contains("IBACOG"))
+                    if (dataTable.Columns.Contains("CodiceSoggetto"))
                     {
-                        var erediHtml = _moduloService.LeggiEredi(row["IBACOG"].ToString(), primoRigo, tenant);
+                        var erediHtml = _moduloService.LeggiEredi(row["CodiceSoggetto"].ToString(), primoRigo, tenant);
                         newRow["PrimoRigo"] = erediHtml;
                     }
                     else
@@ -239,3 +241,4 @@ namespace CreazioneListe.Services
         }
     }
 }
+

@@ -1,25 +1,25 @@
-﻿@model System.Data.DataTable
+@model System.Data.DataTable
 @{
-    ViewData["Title"] = "Seleziona File SSC";
+    ViewData["Title"] = "Seleziona File TENANT_B";
 }
 @{
     var columnNamesMap = new Dictionary<string, string>
     {
-        { "PBSNCO", "CodNaz" },
-        { "PBSCCO", "CodCorr" },
-        { "KBARA1", "Fornitore" },
-        { "PBSACC", "CodAcc" },
-        { "PBSURG", "Urg" },
-        { "PBSVALORE", "Val" },
-        { "TBIDEC", "Desc" },
+        { "FornitoreNazione", "CodNaz" },
+        { "FornitoreCodice", "CodCorr" },
+        { "RagioneSocialeFornitore", "Fornitore" },
+        { "AccertamentoCodice", "CodAcc" },
+        { "UrgenzaCodice", "Urg" },
+        { "Importo", "Val" },
+        { "DescrizioneAccertamento", "Desc" },
         { "TotAcc", "TotAcc" }
     };
 }
 
 <div class="container-fluid">
-    <h2 class="text-center my-4">Seleziona Dati da Includere nel File Excel SSC</h2>
+    <h2 class="text-center my-4">Seleziona Dati da Includere nel File Excel TENANT_B</h2>
 
-    <form asp-controller="SelezionaSsc" asp-action="CreaFile" method="post" id="selezionaForm">
+    <form asp-controller="SelezionaTenantB" asp-action="CreaFile" method="post" id="selezionaForm">
         <div class="form-group text-center mb-3">
             <button type="button" class="btn btn-outline-secondary" onclick="selezionaTutte()">Seleziona Tutto</button>
         </div>
@@ -43,7 +43,7 @@
                         <tr>
                             <td class="text-center">
                                 <input type="checkbox" id="rowCheck_@i" name="selectedRows" class="btn-check row-checkbox"
-                                       value="@row["PBSNCO"],@row["PBSCCO"],@row["PBSACC"],@row["PBSURG"],@i"
+                                       value="@row["FornitoreNazione"],@row["FornitoreCodice"],@row["AccertamentoCodice"],@row["UrgenzaCodice"],@i"
                                        onchange="toggleFormato(@i)">
                                 <label class="btn btn-outline-primary btn-check-outlined" for="rowCheck_@i">Seleziona</label>
                             </td>
@@ -73,3 +73,4 @@
         </div>
     </form>
 </div>
+

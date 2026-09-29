@@ -1,4 +1,4 @@
-﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using System.Text;
@@ -19,16 +19,16 @@ namespace CreazioneListe.Services
         public string LeggiModuloTesto(string cOggetto, string cTipo, string tenant)
         {
             var altre = string.Empty;
-            string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
+            string connectionString = TenantConfiguration.GetConnectionString(_configuration, tenant);
 
             try
             {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
+                using (var connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
                     _logger.LogInformation("Connessione al database aperta con successo per LeggiModuloTesto");
 
-                    var sql = @"SELECT * FROM IC6DRSF0 WHERE IC6OGG = @cOggetto AND IC6TMO = @cTipo ORDER BY IC6DAT DESC";
+                    var sql = @"SELECT * FROM Annotazioni WHERE AnnotazioneSoggetto = @cOggetto AND TipoAnnotazione = @cTipo ORDER BY DataAnnotazione DESC";
 
                     using (var command = new SqlCommand(sql, connection))
                     {
@@ -40,16 +40,16 @@ namespace CreazioneListe.Services
                             if (reader.HasRows)
                             {
                                 reader.Read();
-                                var appData = reader["IC6DAT"];
+                                var appData = reader["DataAnnotazione"];
                                 _logger.LogInformation("Dati trovati per LeggiModuloTesto: Oggetto = {COggetto}, Tipo = {CTipo}", cOggetto, cTipo);
 
                                 do
                                 {
-                                    if (Convert.ToDouble(appData) == Convert.ToDouble(reader["IC6DAT"]))
+                                    if (Convert.ToDouble(appData) == Convert.ToDouble(reader["DataAnnotazione"]))
                                     {
-                                        if (!string.IsNullOrWhiteSpace(reader["IC6TES"].ToString()))
+                                        if (!string.IsNullOrWhiteSpace(reader["TestoAnnotazione"].ToString()))
                                         {
-                                            altre += reader["IC6TES"].ToString().Trim() + Environment.NewLine;
+                                            altre += reader["TestoAnnotazione"].ToString().Trim() + Environment.NewLine;
                                         }
                                     }
                                 } while (reader.Read());
@@ -79,26 +79,26 @@ namespace CreazioneListe.Services
         public string LeggiEredi(string oggetto, string primoRigo, string tenant)
         {
             var htEredi = new StringBuilder();
-            string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
+            string connectionString = TenantConfiguration.GetConnectionString(_configuration, tenant);
 
             try
             {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
+                using (var connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
                     _logger.LogInformation("Connessione al database aperta con successo per LeggiEredi");
 
-                    var sql = @"SELECT TOP 300 IBARS1, IBARS2, IBADNA, IBACIN, IBACON,
-                                (SELECT TOP 1 PROV FROM TAB_COMUNI WHERE Comune = IBACON) AS PROVNA,
-                                IBANAN, T2.TBBCA1 AS NAZNAS, IBAIND, T4.TBBDES AS TIPOIND, IBADEI, IBACII, IBACAP, IBAIST, IBACIT, IBAPRV, IBANAZ, T5.TBBCA1 AS NAZNAZ, T1.TBBDES AS DESCARICA, IBFNUM AS CFEREDE
-                                FROM IBOESPF0
-                                INNER JOIN TBBTABF0 AS T1 ON T1.TBBTTA = 'CAT01' AND T1.TBBCTA = IBOCCA AND T1.TBBCLI = 'IT'
-                                INNER JOIN IBAOGGF0 ON IBACOG = IBOCES
-                                LEFT JOIN IBFREGF0 ON IBFOGG = IBOCES AND IBFTRE = 'FIS'
-                                LEFT JOIN TBBTABF0 AS T2 ON T2.TBBTTA = 'NAZ' AND T2.TBBCTA = IBANAN AND T2.TBBCLI = 'IT'
-                                LEFT JOIN TBBTABF0 AS T4 ON T4.TBBTTA = 'IND' AND T4.TBBCTA = IBAIND AND T4.TBBCLI = 'IT'
-                                LEFT JOIN TBBTABF0 AS T5 ON T5.TBBTTA = 'NAZ' AND T5.TBBCTA = IBANAZ AND T5.TBBCLI = 'IT'
-                                WHERE IBOOGG = @oggetto AND IBOFLC = ' ' ORDER BY IBOFLC, IBADNA ASC";
+                    var sql = @"SELECT TOP 300 CognomeRagioneSociale, NomeSoggetto, DataNascita, CodiceComuneNascita, ComuneNascita,
+                                (SELECT TOP 1 PROV FROM Comuni WHERE Comune = ComuneNascita) AS PROVNA,
+                                NazioneNascita, T2.ValoreDecodifica AS NAZNAS, TipoIndirizzo, T4.DescrizioneDecodifica AS TIPOIND, Indirizzo, NumeroCivico, Cap, CodiceComuneResidenza, ComuneResidenza, ProvinciaResidenza, NazioneResidenza, T5.ValoreDecodifica AS NAZNAZ, T1.DescrizioneDecodifica AS DESCARICA, ValoreIdentificativo AS CFEREDE
+                                FROM RelazioniSoggetti
+                                INNER JOIN Decodifiche AS T1 ON T1.TipoDecodifica = 'CAT01' AND T1.CodiceDecodifica = TipoRelazione AND T1.Lingua = 'IT'
+                                INNER JOIN Soggetti ON CodiceSoggetto = SoggettoCollegato
+                                LEFT JOIN IdentificativiSoggetti ON IdentificativoSoggetto = SoggettoCollegato AND TipoIdentificativo = 'FIS'
+                                LEFT JOIN Decodifiche AS T2 ON T2.TipoDecodifica = 'NAZ' AND T2.CodiceDecodifica = NazioneNascita AND T2.Lingua = 'IT'
+                                LEFT JOIN Decodifiche AS T4 ON T4.TipoDecodifica = 'IND' AND T4.CodiceDecodifica = TipoIndirizzo AND T4.Lingua = 'IT'
+                                LEFT JOIN Decodifiche AS T5 ON T5.TipoDecodifica = 'NAZ' AND T5.CodiceDecodifica = NazioneResidenza AND T5.Lingua = 'IT'
+                                WHERE SoggettoOrigine = @oggetto AND Annullata = ' ' ORDER BY Annullata, DataNascita ASC";
 
                     using (var command = new SqlCommand(sql, connection))
                     {
@@ -114,14 +114,14 @@ namespace CreazioneListe.Services
                                 while (reader.Read())
                                 {
                                     var note = string.Empty;
-                                    var dna = reader["IBADNA"].ToString();
+                                    var dna = reader["DataNascita"].ToString();
                                     if (!string.IsNullOrWhiteSpace(dna) && dna.Length == 8)
                                     {
                                         dna = $"{dna.Substring(6, 2)}/{dna.Substring(4, 2)}/{dna.Substring(0, 4)}";
                                         note = $"Nato/a il {dna}";
                                     }
 
-                                    var con = reader["IBACON"].ToString();
+                                    var con = reader["ComuneNascita"].ToString();
                                     if (!string.IsNullOrWhiteSpace(con) && con.Length > 8)
                                     {
                                         note += $" a {con} ({reader["PROVNA"]}) {reader["NAZNAS"]}";
@@ -134,10 +134,10 @@ namespace CreazioneListe.Services
                                     htEredi.AppendLine(sx);
                                     htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["DESCARICA"]}</font></td>");
                                     htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["CFEREDE"]}</font></td>");
-                                    htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBARS1"]} {reader["IBARS2"]}</font></td>");
-                                    htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["TIPOIND"]} {reader["IBADEI"]} {reader["IBACII"]}</font></td>");
-                                    htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBACAP"]} {reader["IBACIT"]}</font></td>");
-                                    htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["IBAPRV"]}</font></td>");
+                                    htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["CognomeRagioneSociale"]} {reader["NomeSoggetto"]}</font></td>");
+                                    htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["TIPOIND"]} {reader["Indirizzo"]} {reader["NumeroCivico"]}</font></td>");
+                                    htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["Cap"]} {reader["ComuneResidenza"]}</font></td>");
+                                    htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{reader["ProvinciaResidenza"]}</font></td>");
                                     htEredi.AppendLine($"<td width='10%' align='LEFT'><font face='verdana' size='2' color='navy'>{note}</font></td>");
                                     htEredi.AppendLine("</tr>");
                                 }
@@ -173,18 +173,18 @@ namespace CreazioneListe.Services
 
         public void AggiornaFileCorrispondenti(int annoProt, int numeroProt, string codAcc, string codUrg, string nazCor, string codCor, string oFile, string tenant)
         {
-            string connectionString = tenant == "EBI" ? "DefaultConnection_EBI" : "DefaultConnection_SSC";
+            string connectionString = TenantConfiguration.GetConnectionString(_configuration, tenant);
 
             try
             {
-                using (var connection = new SqlConnection(_configuration.GetConnectionString(connectionString)))
+                using (var connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
                     _logger.LogInformation("Connessione al database aperta con successo per AggiornaFileCorrispondenti");
 
-                    var countSql = @"SELECT COUNT(*) FROM PBSACOF0 
-                                     WHERE PBSAPR = @annoProt AND PBSNPR = @numeroProt AND PBSACC = @codAcc 
-                                     AND PBSURG = @codUrg AND PBSNCO = @nazCor AND PBSCCO = @codCor";
+                    var countSql = @"SELECT COUNT(*) FROM Assegnazioni 
+                                     WHERE PraticaAnno = @annoProt AND PraticaNumero = @numeroProt AND AccertamentoCodice = @codAcc 
+                                     AND UrgenzaCodice = @codUrg AND FornitoreNazione = @nazCor AND FornitoreCodice = @codCor";
 
                     using (var countCommand = new SqlCommand(countSql, connection))
                     {
@@ -200,11 +200,11 @@ namespace CreazioneListe.Services
                         {
                             _logger.LogInformation("Record trovato per AggiornaFileCorrispondenti: AnnoProt = {AnnoProt}, NumeroProt = {NumeroProt}", annoProt, numeroProt);
 
-                            var updateSql = @"UPDATE PBSACOF0 
-                                              SET PBSSCARICO = @scarico, PBSFILE = @file 
-                                              WHERE PBSAPR = @annoProt AND PBSNPR = @numeroProt 
-                                              AND PBSACC = @codAcc AND PBSURG = @codUrg 
-                                              AND PBSNCO = @nazCor AND PBSCCO = @codCor";
+                            var updateSql = @"UPDATE Assegnazioni 
+                                              SET Esportata = @scarico, NomeFileEsportazione = @file 
+                                              WHERE PraticaAnno = @annoProt AND PraticaNumero = @numeroProt 
+                                              AND AccertamentoCodice = @codAcc AND UrgenzaCodice = @codUrg 
+                                              AND FornitoreNazione = @nazCor AND FornitoreCodice = @codCor";
 
                             using (var updateCommand = new SqlCommand(updateSql, connection))
                             {
@@ -241,3 +241,4 @@ namespace CreazioneListe.Services
         }
     }
 }
+
