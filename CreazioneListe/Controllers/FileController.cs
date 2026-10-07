@@ -1,4 +1,4 @@
-﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Interfaces;
 using CreazioneListe.Services;
 using Microsoft.AspNetCore.Mvc;
 using Renci.SshNet;
@@ -9,12 +9,14 @@ namespace CreazioneListe.Controllers
     public class FileController : Controller
     {
         private readonly IFileService _fileService;
+        private readonly SftpService _sftpService;
         private readonly IConfiguration _configuration;
         private readonly ILogger<FileController> _logger;
 
-        public FileController(IFileService fileService, IConfiguration configuration, ILogger<FileController> logger)
+        public FileController(IFileService fileService, IConfiguration configuration, ILogger<FileController> logger, SftpService sftpService)
         {
             _fileService = fileService;
+            _sftpService = sftpService;
             _configuration = configuration;
             _logger = logger;
         }
@@ -107,24 +109,17 @@ namespace CreazioneListe.Controllers
             try
             {
                 var normalizedDirectory = selectedDirectory.ToUpperInvariant();
+                var uploadUrl = _configuration["Integrations:UploadUrl"];
+                if (!Uri.TryCreate(uploadUrl, UriKind.Absolute, out var uploadUri) ||
+                    (uploadUri.Scheme != Uri.UriSchemeHttps && uploadUri.Scheme != Uri.UriSchemeHttp))
+                    throw new InvalidOperationException("Configurare Integrations:UploadUrl con un URL HTTP o HTTPS valido.");
                 // Recupera il file dal server
                 var file = _fileService.GetFile(tenant, fileName);
 
                 using (var fileStream = file.OpenRead())
                 {
                     // **Passaggio 1: Caricare il file nell'area SFTP**
-                    var sftpService = new SftpService("access854988094.webspace-data.io", 22, "acc30641284", "5zgeHOyDnC");
-                    using (var client = new SftpClient("access854988094.webspace-data.io", 22, "acc30641284", "5zgeHOyDnC"))
-                    {
-                        client.Connect();
-
-                        if (!client.Exists(normalizedDirectory))
-                        {
-                            client.CreateDirectory(normalizedDirectory);
-                        }
-                        client.UploadFile(fileStream, $"{normalizedDirectory}/{file.Name}");
-                        client.Disconnect();
-                    }
+                    _sftpService.UploadFile(fileStream, normalizedDirectory, file.Name);
 
                     // **Passaggio 2: Inviare il file all'API remota**
                     using (var client = new HttpClient())
@@ -137,7 +132,7 @@ namespace CreazioneListe.Controllers
 
                             multipartFormDataContent.Add(fileContent, "file", file.Name);
 
-                            var response = await client.PostAsync("http://http://10.10.19.228:5280/api/Create/upload", multipartFormDataContent);
+                            var response = await client.PostAsync(uploadUri, multipartFormDataContent);
 
                             if (!response.IsSuccessStatusCode)
                             {
@@ -157,3 +152,4 @@ namespace CreazioneListe.Controllers
         }
     }
 }
+

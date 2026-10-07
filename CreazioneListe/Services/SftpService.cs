@@ -1,24 +1,37 @@
-﻿using Renci.SshNet;
+using Renci.SshNet;
 
 namespace CreazioneListe.Services
 {
     public class SftpService
     {
-        private readonly string _host;
-        private readonly int _port;
-        private readonly string _username;
-        private readonly string _password;
+        private readonly IConfiguration _configuration;
 
-        public SftpService(string host, int port, string username, string password)
+        public SftpService(IConfiguration configuration)
         {
-            _host = host;
-            _port = port;
-            _username = username;
-            _password = password;
+            _configuration = configuration;
+        }
+
+        private SftpClient CreateClient() => new SftpClient(
+            Required(_configuration, "Sftp:Host"),
+            _configuration.GetValue<int>("Sftp:Port", 22),
+            Required(_configuration, "Sftp:Username"),
+            Required(_configuration, "Sftp:Password"));
+
+        private static string Required(IConfiguration configuration, string key) =>
+            !string.IsNullOrWhiteSpace(configuration[key]) ? configuration[key]!
+                : throw new InvalidOperationException($"Configurare {key} tramite configurazione privata.");
+
+        public void UploadFile(Stream stream, string directory, string fileName)
+        {
+            using var client = CreateClient();
+            client.Connect();
+            if (!client.Exists(directory)) client.CreateDirectory(directory);
+            client.UploadFile(stream, $"{directory.TrimEnd('/')}/{fileName}");
+            client.Disconnect();
         }
         public List<string> ListDirectories(string remotePath)
         {
-            using (var client = new SftpClient(_host, _port, _username, _password))
+            using (var client = CreateClient())
             {
                 client.Connect();
                 var directories = new List<string>();
@@ -36,7 +49,7 @@ namespace CreazioneListe.Services
 
         public List<string> ListFiles(string remotePath)
         {
-            using (var client = new SftpClient(_host, _port, _username, _password))
+            using (var client = CreateClient())
             {
                 client.Connect();
                 var files = new List<string>();
@@ -54,7 +67,7 @@ namespace CreazioneListe.Services
 
         public Stream DownloadFile(string remoteFilePath)
         {
-            using (var client = new SftpClient(_host, _port, _username, _password))
+            using (var client = CreateClient())
             {
                 client.Connect();
                 var memoryStream = new MemoryStream();

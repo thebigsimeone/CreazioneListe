@@ -1,20 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace CreazioneListe.Models
+namespace CreazioneListe.Models;
+
+public enum EnumCodFornitore
 {
-    public enum EnumCodFornitore
-    {
-        [Display(Name ="TOMMASIELLO")]
-        ACT,
-        [Display(Name = "CESSIONI")]
-        CANDELA,
-        [Display(Name = "DIR1")]
-        DIR1,
-        [Display(Name = "FORZA")]
-        FORZA,
-        [Display(Name = "GIAMPAOLO")]
-        GIAMPAOLO,
-        [Display(Name = "SCHEGIC")]
-        SCHEGIC
-    }
+    [Display(Name = "Fornitore A")] FornitoreA,
+    [Display(Name = "Fornitore B")] FornitoreB,
+    [Display(Name = "Fornitore C")] FornitoreC,
+    [Display(Name = "Fornitore D")] FornitoreD,
+    [Display(Name = "Fornitore E")] FornitoreE,
+    [Display(Name = "Fornitore F")] FornitoreF
 }

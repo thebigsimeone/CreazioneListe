@@ -1,4 +1,4 @@
-﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -54,13 +54,13 @@ namespace CreazioneListe.Controllers
             {
                 var item = new
                 {
-                    PBSNCO = row.Table.Columns.Contains("PBSNCO") ? row["PBSNCO"].ToString()?.Trim() : null,
-                    PBSCCO = row.Table.Columns.Contains("PBSCCO") ? row["PBSCCO"].ToString()?.Trim() : null,
-                    KBARA1 = row.Table.Columns.Contains("KBARA1") ? row["KBARA1"].ToString()?.Trim() : null,
-                    PBSACC = row.Table.Columns.Contains("PBSACC") ? row["PBSACC"].ToString()?.Trim() : null,
-                    PBSURG = row.Table.Columns.Contains("PBSURG") ? row["PBSURG"].ToString()?.Trim() : null,
-                    PBSVALORE = row.Table.Columns.Contains("PBSVALORE") ? row["PBSVALORE"].ToString()?.Trim() : null,
-                    TBIDEC = row.Table.Columns.Contains("TBIDEC") ? row["TBIDEC"].ToString()?.Trim() : null,
+                    FornitoreNazione = row.Table.Columns.Contains("FornitoreNazione") ? row["FornitoreNazione"].ToString()?.Trim() : null,
+                    FornitoreCodice = row.Table.Columns.Contains("FornitoreCodice") ? row["FornitoreCodice"].ToString()?.Trim() : null,
+                    RagioneSocialeFornitore = row.Table.Columns.Contains("RagioneSocialeFornitore") ? row["RagioneSocialeFornitore"].ToString()?.Trim() : null,
+                    AccertamentoCodice = row.Table.Columns.Contains("AccertamentoCodice") ? row["AccertamentoCodice"].ToString()?.Trim() : null,
+                    UrgenzaCodice = row.Table.Columns.Contains("UrgenzaCodice") ? row["UrgenzaCodice"].ToString()?.Trim() : null,
+                    Importo = row.Table.Columns.Contains("Importo") ? row["Importo"].ToString()?.Trim() : null,
+                    DescrizioneAccertamento = row.Table.Columns.Contains("DescrizioneAccertamento") ? row["DescrizioneAccertamento"].ToString()?.Trim() : null,
                     TotAcc = row.Table.Columns.Contains("TotAcc") ? row["TotAcc"].ToString()?.Trim() : null
                 };
                 list.Add(item);
@@ -70,3 +70,4 @@ namespace CreazioneListe.Controllers
         }
     }
 }
+

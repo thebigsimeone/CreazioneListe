@@ -1,11 +1,11 @@
-﻿@model CreazioneListe.Models.FormData
+@model CreazioneListe.Models.FormData
 @{
-    ViewData["Title"] = "Home Page EBI";
+    ViewData["Title"] = "Home Page TENANT_B";
 }
 
 <div class="container mt-5">
-    <h2>Creazione File Excel per Fornitori EBI</h2>
-    <form asp-controller="SelezionaEbi" asp-action="Submit" method="post">
+    <h2>Creazione File Excel per Fornitori TENANT_B</h2>
+    <form asp-controller="SelezionaTenantB" asp-action="Submit" method="post">
         <div class="form-floating mb-3">
             <input type="text" class="form-control" id="NazCor" name="NazCor" maxlength="3" placeholder="Codice Corrispondente" />
             <label for="NazCor">Codice Corrispondente</label>
@@ -35,15 +35,15 @@
         </div>
     </form>
     <form asp-action="RegistroFile" asp-controller="RegistroFile" method="get">
-        <input type="hidden" name="tenant" value="EBI" />
+        <input type="hidden" name="tenant" value="TENANT_B" />
         <input type="hidden" name="dataAff" value="@Model.DataAff" />
-        <button type="submit" class="btn btn-outline-primary">Registro File</button>
+        <button type="submit" class="btn btn-outline-info">Registro File</button>
     </form>
 </div>
 
 <style>
     .form-floating .form-control:focus {
-        border-color: cornflowerblue; /* Colore del bordo al focus */
+        border-color: aquamarine; /* Colore del bordo al focus */
         box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Aggiungi un effetto di ombreggiatura */
     }
 </style>

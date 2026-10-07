@@ -1,4 +1,4 @@
-﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -6,7 +6,7 @@ using System.Data;
 
 namespace CreazioneListe.Controllers
 {
-    public class SelezionaEbiController : Controller
+    public class SelezionaTenantBController : Controller
     {
         private readonly IDatabaseService _databaseService;
         private readonly IModuloService _moduloService;
@@ -15,14 +15,14 @@ namespace CreazioneListe.Controllers
         private readonly IMemoryCache _memoryCache;
         private readonly IColonneFiltraggioService _colonneFiltraggioService;
 
-        private readonly ILogger<SelezionaEbiController> _logger;
+        private readonly ILogger<SelezionaTenantBController> _logger;
 
-        public SelezionaEbiController(IDatabaseService databaseService,
+        public SelezionaTenantBController(IDatabaseService databaseService,
                                       IExcelService excelService,
                                       IConfiguration configuration,
                                       IModuloService moduloService,
                                       IMemoryCache memoryCache,
-                                      ILogger<SelezionaEbiController> logger,
+                                      ILogger<SelezionaTenantBController> logger,
                                       IColonneFiltraggioService colonneFiltraggioService)
         {
             _databaseService = databaseService;
@@ -38,13 +38,13 @@ namespace CreazioneListe.Controllers
         {
             try
             {
-                _logger.LogInformation("Accedendo alla pagina Index del controller SelezionaEbi.");
+                _logger.LogInformation("Accedendo alla pagina Index del controller SelezionaTENANT_B.");
                 var formData = new FormData();
                 return View(formData);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante l'accesso alla pagina Index del controller SelezionaEbi.");
+                _logger.LogError(ex, "Errore durante l'accesso alla pagina Index del controller SelezionaTENANT_B.");
                 return StatusCode(500, "Errore durante l'accesso alla pagina. Si prega di riprovare più tardi.");
             }
         }
@@ -54,31 +54,32 @@ namespace CreazioneListe.Controllers
         {
             try
             {
-                _logger.LogInformation("Dati inviati per la selezione EBI.");
-                return RedirectToAction("SelezionaEbi", "SelezionaEbi", formData);
+                _logger.LogInformation("Dati inviati per la selezione TENANT_B.");
+                return RedirectToAction("SelezionaTenantB", "SelezionaTenantB", formData);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante il redirect a SelezionaEbi.");
+                _logger.LogError(ex, "Errore durante il redirect a SelezionaTENANT_B.");
                 return StatusCode(500, "Errore durante il redirect. Si prega di riprovare più tardi.");
             }
         }
 
-        public async Task<IActionResult> SelezionaEbi(FormData formData)
+        public async Task<IActionResult> SelezionaTENANT_B(FormData formData)
         {
             try
             {
-                _logger.LogInformation("Esecuzione della selezione EBI per i dati forniti.");
-                var data = await _databaseService.GetSelectAsync(formData, "EBI");
+                _logger.LogInformation("Esecuzione della selezione TENANT_B per i dati forniti.");
+                var data = await _databaseService.GetSelectAsync(formData, "TENANT_B");
                 return View(data);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante la selezione dei dati EBI.");
+                _logger.LogError(ex, "Errore durante la selezione dei dati TENANT_B.");
                 return StatusCode(500, "Errore durante la selezione dei dati. Si prega di riprovare più tardi.");
             }
         }
-        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string[] unisci, string tenant = "EBI")
+
+        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string[] unisci, string tenant = "TENANT_B")
         {
             if (selectedRows == null || selectedRows.Length == 0)
             {
@@ -124,8 +125,8 @@ namespace CreazioneListe.Controllers
                     /*foreach (DataRow row in data.Rows)
                     {
                         _moduloService.AggiornaFileCorrispondenti(
-                            int.Parse(row["PBAANP"].ToString()),
-                            int.Parse(row["PBANUP"].ToString()),
+                            int.Parse(row["AnnoProtocollo"].ToString()),
+                            int.Parse(row["NumeroProtocollo"].ToString()),
                             richiestaExcel.CodAcc,
                             richiestaExcel.CodUrg,
                             richiestaExcel.NazCor,
@@ -176,7 +177,7 @@ namespace CreazioneListe.Controllers
 
                 ViewBag.Tenant = tenant;
 
-                return View("~/Views/File/ListaFileEbi.cshtml", files);
+                return View("~/Views/File/ListaFileTenantB.cshtml", files);
             }
             catch (Exception ex)
             {
@@ -184,5 +185,6 @@ namespace CreazioneListe.Controllers
                 return StatusCode(500, "Errore durante la creazione dei file Excel.");
             }
         }
+
     }
 }

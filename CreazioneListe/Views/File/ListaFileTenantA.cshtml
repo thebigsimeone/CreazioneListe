@@ -1,6 +1,6 @@
-﻿@model List<System.IO.FileInfo>
+@model List<System.IO.FileInfo>
 @{
-    var tenant = ViewBag.Tenant ?? "EBI";
+    var tenant = ViewBag.Tenant ?? "TENANT_A";
 }
 
 <h2 class="mb-4">Lista File Generati per Tenant: <strong>@tenant</strong></h2>
@@ -28,11 +28,8 @@
                         <input type="hidden" name="fileName" value="@file.Name" />
                         <input type="hidden" name="tenant" value="@tenant" />
                         <select class="form-select form-select-sm w-auto" name="selectedDirectory" required>
-                            <option value="/CANDELA/RICHIESTE">CANDELA</option>
-                            <option value="/ACT/RICHIESTE">ACT</option>
-                            <option value="/FORNITORE_DIR_1/RICHIESTE">DIR1</option>
-                            <option value="/FORZA/RICHIESTE">FORZA</option>
-                            <option value="/GIAMPAOLO/RICHIESTE">GIAMPAOLO</option>
+                            <option value="/FORNITORE_A/RICHIESTE">Fornitore A</option>
+                            <option value="/FORNITORE_B/RICHIESTE">Fornitore B</option>
                         </select>
                         <button type="submit" class="btn btn-success btn-sm">Invia</button>
                     </form>
@@ -52,5 +49,6 @@
 
 <div class="mt-3">
     <button class="btn btn-outline-success" onclick="scaricaTutti()">Download Tutti i File</button>
-    <a asp-controller="SelezionaEbi" asp-action="Index" class="btn btn-outline-secondary">Torna alla Selezione</a>
+    <a asp-controller="SelezionaTenantA" asp-action="Index" class="btn btn-outline-secondary">Torna alla Selezione</a>
 </div>
+

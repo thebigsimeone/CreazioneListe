@@ -1,4 +1,4 @@
-﻿using CreazioneListe.Interfaces;
+using CreazioneListe.Interfaces;
 using CreazioneListe.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -6,7 +6,7 @@ using System.Data;
 
 namespace CreazioneListe.Controllers
 {
-    public class SelezionaSscController : Controller
+    public class SelezionaTenantAController : Controller
     {
         private readonly IDatabaseService _databaseService;
         private readonly IModuloService _moduloService;
@@ -15,14 +15,14 @@ namespace CreazioneListe.Controllers
         private readonly IMemoryCache _memoryCache;
         private readonly IColonneFiltraggioService _colonneFiltraggioService;
 
-        private readonly ILogger<SelezionaSscController> _logger;
+        private readonly ILogger<SelezionaTenantAController> _logger;
 
-        public SelezionaSscController(IDatabaseService databaseService,
+        public SelezionaTenantAController(IDatabaseService databaseService,
                                       IExcelService excelService,
                                       IConfiguration configuration,
                                       IModuloService moduloService,
                                       IMemoryCache memoryCache,
-                                      ILogger<SelezionaSscController> logger,
+                                      ILogger<SelezionaTenantAController> logger,
                                       IColonneFiltraggioService colonneFiltraggioService)
         {
             _databaseService = databaseService;
@@ -38,13 +38,13 @@ namespace CreazioneListe.Controllers
         {
             try
             {
-                _logger.LogInformation("Accedendo alla pagina Index del controller SelezionaSSC.");
+                _logger.LogInformation("Accedendo alla pagina Index del controller SelezionaTenantA.");
                 var formData = new FormData();
                 return View(formData);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante l'accesso alla pagina Index del controller SelezionaSSC.");
+                _logger.LogError(ex, "Errore durante l'accesso alla pagina Index del controller SelezionaTenantA.");
                 return StatusCode(500, "Errore durante l'accesso alla pagina. Si prega di riprovare più tardi.");
             }
         }
@@ -54,32 +54,31 @@ namespace CreazioneListe.Controllers
         {
             try
             {
-                _logger.LogInformation("Dati inviati per la selezione SSC.");
-                return RedirectToAction("SelezionaSsc", "SelezionaSsc", formData);
+                _logger.LogInformation("Dati inviati per la selezione TENANT_A.");
+                return RedirectToAction("SelezionaTenantA", "SelezionaTenantA", formData);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante il redirect a SelezionaSSC.");
+                _logger.LogError(ex, "Errore durante il redirect a SelezionaTenantA.");
                 return StatusCode(500, "Errore durante il redirect. Si prega di riprovare più tardi.");
             }
         }
 
-        public async Task<IActionResult> SelezionaSSC(FormData formData)
+        public async Task<IActionResult> SelezionaTenantA(FormData formData)
         {
             try
             {
-                _logger.LogInformation("Esecuzione della selezione SSC per i dati forniti.");
-                var data = await _databaseService.GetSelectAsync(formData, "SSC");
+                _logger.LogInformation("Esecuzione della selezione TENANT_A per i dati forniti.");
+                var data = await _databaseService.GetSelectAsync(formData, "TENANT_A");
                 return View(data);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Errore durante la selezione dei dati SSC.");
+                _logger.LogError(ex, "Errore durante la selezione dei dati TENANT_A.");
                 return StatusCode(500, "Errore durante la selezione dei dati. Si prega di riprovare più tardi.");
             }
         }
-
-        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string[] unisci, string tenant = "SSC")
+        public async Task<IActionResult> CreaFile(string[] selectedRows, string[] formato, string[] unisci, string tenant = "TENANT_A")
         {
             if (selectedRows == null || selectedRows.Length == 0)
             {
@@ -125,8 +124,8 @@ namespace CreazioneListe.Controllers
                     /*foreach (DataRow row in data.Rows)
                     {
                         _moduloService.AggiornaFileCorrispondenti(
-                            int.Parse(row["PBAANP"].ToString()),
-                            int.Parse(row["PBANUP"].ToString()),
+                            int.Parse(row["AnnoProtocollo"].ToString()),
+                            int.Parse(row["NumeroProtocollo"].ToString()),
                             richiestaExcel.CodAcc,
                             richiestaExcel.CodUrg,
                             richiestaExcel.NazCor,
@@ -177,7 +176,7 @@ namespace CreazioneListe.Controllers
 
                 ViewBag.Tenant = tenant;
 
-                return View("~/Views/File/ListaFileSsc.cshtml", files);
+                return View("~/Views/File/ListaFileTenantA.cshtml", files);
             }
             catch (Exception ex)
             {
@@ -185,6 +184,5 @@ namespace CreazioneListe.Controllers
                 return StatusCode(500, "Errore durante la creazione dei file Excel.");
             }
         }
-
     }
 }
