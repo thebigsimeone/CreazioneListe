@@ -81,3 +81,7 @@ I controlli di contratto non richiedono un database. Per il test SQL con databas
 - [CreazioneListe](CreazioneListe): applicazione, controller, viste e servizi.
 - [database/schema.sql](database/schema.sql): contratto SQL dimostrativo.
 - [PUBLICATION.md](PUBLICATION.md): configurazione esterna e indicazioni per la pubblicazione.
+
+## Flussi operativi e automazioni
+
+Vedere [FLUSSI.md](FLUSSI.md) per i percorsi dall'azione iniziale al risultato, le operazioni interne, gli errori, gli effetti parziali e le automazioni attive o disattivate.
